@@ -17,3 +17,12 @@ Re-run the gates after populating `.env` with a real Cloudflare token/email (and
 | Issuer resolves to HTTPS | PASS | `./scripts/gate-auth-issuer.sh` | Gate output: `/tmp/livraone-phase5/gate-auth.log` (includes entire run); metadata captured at `/tmp/livraone-phase5/wellknown.json`. |
 
 PASS criteria: all gates must run OK with strict issuer checks; evidence stored under `/tmp/livraone-phase5`.
+
+# Phase 6 Gates
+
+| Gate | Status | Command | Notes |
+| --- | --- | --- | --- |
+| Hub auth code-flow issues redirect to auth.livraone.com with client_id | FAIL | `./scripts/gate-hub-auth-codeflow.sh` | Verifies `/api/auth/signin/keycloak` performs a Keycloak redirect. |
+| Hub admin API enforces RBAC | FAIL | `./scripts/gate-hub-rbac.sh` | Ensures unauthenticated requests are denied and optional admin credentials can exercise `/api/admin/ping`. |
+
+PASS criteria: both gates run OK, `apps/hub` enforces the exact issuer and surfaces realm roles in `/api/admin/ping`.

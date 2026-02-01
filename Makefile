@@ -1,4 +1,4 @@
-.PHONY: help build gate-auth gate-auth-smoke gate-auth-e2e gate-auth-issuer
+.PHONY: help build gate-auth gate-auth-smoke gate-auth-e2e gate-auth-issuer gate-hub gate-hub-auth-codeflow gate-hub-rbac
 
 help:
 	@echo "Targets: build gate-auth"
@@ -16,3 +16,11 @@ gate-auth-issuer:
 	@./scripts/gate-auth-issuer.sh
 
 gate-auth: gate-auth-issuer gate-auth-smoke gate-auth-e2e
+
+gate-hub-auth-codeflow:
+	@./scripts/gate-hub-auth-codeflow.sh
+
+gate-hub-rbac:
+	@./scripts/gate-hub-rbac.sh
+
+gate-hub: gate-hub-auth-codeflow gate-hub-rbac
