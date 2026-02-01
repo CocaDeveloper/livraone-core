@@ -1,5 +1,9 @@
 .env
-.env.local
-.DS_Store
+.env.*
+!.env.example
 node_modules/
+.DS_Store
 *.log
+.next/
+dist/
+build/
