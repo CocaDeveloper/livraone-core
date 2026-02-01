@@ -48,10 +48,6 @@ ACCESS_TOKEN="$access_token" python3 - <<'PY'
 import base64, json
 import os
 
-allowed_issuers = {
-    'https://auth.livraone.com/realms/livraone',
-    'http://auth.livraone.com/realms/livraone'
-}
 iss_expected = 'https://auth.livraone.com/realms/livraone'
 token = os.environ.get('ACCESS_TOKEN', '').strip()
 parts = token.split('.')
@@ -60,10 +56,8 @@ if len(parts) < 2:
 payload = parts[1]
 payload += '=' * (-len(payload) % 4)
 data = json.loads(base64.urlsafe_b64decode(payload))
-if data.get('iss') not in allowed_issuers:
+if data.get('iss') != iss_expected:
     raise SystemExit(f"unexpected issuer {data.get('iss')}")
-if data.get('iss') == 'http://auth.livraone.com/realms/livraone':
-    print('WARNING: issuer is http; consider setting KEYCLOAK_FRONTEND_URL=https://auth.livraone.com to align with TLS')
 roles = data.get('realm_access', {}).get('roles', [])
 if 'user' not in roles:
     raise SystemExit(f"role 'user' missing, got {roles}")

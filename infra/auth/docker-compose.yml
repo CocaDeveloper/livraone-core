@@ -17,6 +17,13 @@ services:
     env_file:
       - ../.env
     entrypoint: ["/bin/sh", "-c", "/opt/keycloak/bin/kc.sh build && exec /opt/keycloak/bin/kc.sh start --optimized --http-enabled=true"]
+    environment:
+      - KC_PROXY=edge
+      - KC_HOSTNAME=https://auth.livraone.com
+      - KC_HOSTNAME_STRICT=true
+      - KC_HTTP_ENABLED=true
+      - KC_HTTP_PORT=8080
+      - KC_PROXY_HEADERS=xforwarded
     ports:
       - 8080:8080
     depends_on:

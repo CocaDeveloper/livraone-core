@@ -13,6 +13,6 @@ Re-run the gates after populating `.env` with a real Cloudflare token/email (and
 | Gate | Status | Command | Notes |
 | --- | --- | --- | --- |
 | Auth discovery endpoint responds over HTTPS | PASS | `./scripts/gate-auth-smoke.sh` | Gate output: `/tmp/gate-auth-smoke.log`. |
-| Password-grant token issued with `test.user` and role `user` | PASS | `./scripts/gate-auth-e2e.sh` | Gate output + warning about HTTP issuer: `/tmp/gate-auth-e2e.log`. |
+| Password-grant token issued with `test.user` and role `user` | PASS | `./scripts/gate-auth-e2e.sh` | Gate output: `/tmp/gate-auth-e2e.log`; issuer now resolves to `https://auth.livraone.com/realms/livraone`. |
 
 PASS criteria: both gates must reach `OK`, bootstrap must create the `livraone` realm, `hub-web`/`invoice-web` confidential clients, and the `test.user` user with the `user` realm role so automated flows can continue without manual intervention.
