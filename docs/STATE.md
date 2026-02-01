@@ -12,7 +12,8 @@ Re-run the gates after populating `.env` with a real Cloudflare token/email (and
 
 | Gate | Status | Command | Notes |
 | --- | --- | --- | --- |
-| Auth discovery endpoint responds over HTTPS | PASS | `./scripts/gate-auth-smoke.sh` | Gate output: `/tmp/gate-auth-smoke.log`. |
-| Password-grant token issued with `test.user` and role `user` | PASS | `./scripts/gate-auth-e2e.sh` | Gate output: `/tmp/gate-auth-e2e.log`; issuer now resolves to `https://auth.livraone.com/realms/livraone`. |
+| Auth discovery endpoint responds over HTTPS | PASS | `./scripts/gate-auth-smoke.sh` | Gate output: `/tmp/livraone-phase5/gate-auth-smoke.log`. |
+| Password-grant token issued with `test.user` and role `user` | PASS | `./scripts/gate-auth-e2e.sh` | Gate output: `/tmp/livraone-phase5/gate-auth-e2e.log`. |
+| Issuer resolves to HTTPS | PASS | `./scripts/gate-auth-issuer.sh` | Gate output: `/tmp/livraone-phase5/gate-auth.log` (includes entire run); metadata captured at `/tmp/livraone-phase5/wellknown.json`. |
 
-PASS criteria: both gates must reach `OK`, bootstrap must create the `livraone` realm, `hub-web`/`invoice-web` confidential clients, and the `test.user` user with the `user` realm role so automated flows can continue without manual intervention.
+PASS criteria: all gates must run OK with strict issuer checks; evidence stored under `/tmp/livraone-phase5`.
