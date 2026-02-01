@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  postgres-auth:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - traefik
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1.0
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    entrypoint: ["/bin/sh", "-c", "/opt/keycloak/bin/kc.sh build && exec /opt/keycloak/bin/kc.sh start --optimized --http-enabled=true"]
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres-auth
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+      - "traefik.http.routers.auth.rule=Host(`auth.livraone.com`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=cloudflare"
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
+    name: livraone
+
+volumes:
+  postgres-auth-data:
+  keycloak-data:
