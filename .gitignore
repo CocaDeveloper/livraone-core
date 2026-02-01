@@ -4,6 +4,9 @@
 node_modules/
 .DS_Store
 *.log
+infra/acme.json
+infra/acme/
+infra/.env
 .next/
 dist/
 build/

@@ -2,7 +2,8 @@
 
 | Gate | Status | Command | Notes |
 | --- | --- | --- | --- |
-| Traefik container healthy + ports mapped | PASS | `./scripts/gate-traefik.sh` | Container is healthy after the compose stack started; HTTP/HTTPS ports are mapped to 80/443. |
-| TLS certificates valid for `hub.livraone.com` | FAIL | `./scripts/gate-tls.sh` | Cloudflare token is not configured yet, so TLS handshake against `hub.livraone.com` fails (`curl` exit 35 / `openssl s_client` reports no certificate). |
+| Preflight (user, Docker, DNS, env vars) | PASS | `./scripts/preflight-phase4.sh` | Ensures `.env` has `CF_API_TOKEN`/`ACME_EMAIL`, Docker is installed, and DNS entries all point to this VPS. |
+| Traefik container healthy + ports mapped | PASS | `./scripts/gate-traefik.sh` | Container is healthy, exposing 80/443 on the shared `livraone` network. |
+| TLS certificates valid for `hub.livraone.com` | FAIL | `./scripts/gate-tls.sh` | Cloudflare credentials are placeholder, so Traefik cannot complete the DNS-01 challenge (see last 200 Traefik log lines for the precise error). |
 
-Re-run `./scripts/run-gates.sh` after supplying a real `CF_API_TOKEN`/`ACME_EMAIL` in `.env` and once Traefik issues a certificate to flip the TLS gate to PASS.
+Re-run the gates after populating `.env` with a real Cloudflare token/email (and optionally `ACME_CA_SERVER` when testing against staging). The TLS gate gives classified failure reasons (`missing router`, `DNS challenge failure`, `rate limit`, etc.) to guide follow-up actions.

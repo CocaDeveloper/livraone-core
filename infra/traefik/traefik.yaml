@@ -29,8 +29,7 @@ ping: {}
 certificatesResolvers:
   cloudflare:
     acme:
-      email: ${ACME_EMAIL}
       dnsChallenge:
         provider: cloudflare
-      storage: "/acme.json"
-      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      storage: "/acme/acme.json"
+      caServer: https://acme-v02.api.letsencrypt.org/directory
