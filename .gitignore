@@ -10,3 +10,6 @@ infra/.env
 .next/
 dist/
 build/
+.vscode/
+acme/
+**/acme/
