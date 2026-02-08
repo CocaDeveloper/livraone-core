@@ -1,6 +1,19 @@
-import NextAuthImport from "next-auth";
-const NextAuth = NextAuthImport?.default ?? NextAuthImport;
-import { authOptions as importedAuthOptions } from "../../../lib/auth.js";
+import * as NextAuthModule from "next-auth";
+import { authOptions } from "../../../lib/auth.js";
 
-export const authOptions = importedAuthOptions;
-export default NextAuth(authOptions);
+const candidates = [
+  NextAuthModule?.default,
+  NextAuthModule?.NextAuth,
+  NextAuthModule,
+];
+
+const NextAuthFn = candidates.find((x) => typeof x === "function");
+
+if (!NextAuthFn) {
+  const keys = NextAuthModule ? Object.keys(NextAuthModule) : [];
+  throw new Error(
+    `NextAuth export is not a function. keys=${keys.join(",")}`
+  );
+}
+
+export default NextAuthFn(authOptions);
