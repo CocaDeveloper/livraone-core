@@ -1,5 +1,12 @@
-import KeycloakProvider from "next-auth/providers/keycloak";
-
+import KeycloakProviderModule from "next-auth/providers/keycloak";
+const KeycloakProvider =
+  (KeycloakProviderModule && KeycloakProviderModule.default) ||
+  KeycloakProviderModule;
+if (typeof KeycloakProvider !== "function") {
+  throw new Error(
+    `Expected KeycloakProvider to be callable, got ${typeof KeycloakProvider}`
+  );
+}
 const requiredEnv = [
   "HUB_AUTH_ISSUER",
   "HUB_AUTH_CLIENT_ID",

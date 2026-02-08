@@ -1,18 +1,19 @@
-import * as NextAuthModule from "next-auth";
 import { authOptions } from "../../../lib/auth.js";
 
-const candidates = [
-  NextAuthModule?.default,
-  NextAuthModule?.NextAuth,
-  NextAuthModule,
-];
+export { authOptions };
 
-const NextAuthFn = candidates.find((x) => typeof x === "function");
+const NextAuthPkg = require("next-auth");
+const NextAuthFn =
+  (NextAuthPkg && NextAuthPkg.default) ||
+  (NextAuthPkg && NextAuthPkg.NextAuth) ||
+  NextAuthPkg;
 
-if (!NextAuthFn) {
-  const keys = NextAuthModule ? Object.keys(NextAuthModule) : [];
+if (typeof NextAuthFn !== "function") {
+  const keys = NextAuthPkg ? Object.keys(NextAuthPkg) : [];
   throw new Error(
-    `NextAuth export is not a function. keys=${keys.join(",")}`
+    `NextAuth export is not callable (typeof=${typeof NextAuthFn}, keys=${keys.join(
+      ","
+    )})`
   );
 }
 
