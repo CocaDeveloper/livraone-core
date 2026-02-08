@@ -1,8 +1,10 @@
+import KeycloakProvider from "next-auth/providers/keycloak";
+
 const requiredEnv = [
   "HUB_AUTH_ISSUER",
   "HUB_AUTH_CLIENT_ID",
   "HUB_AUTH_CLIENT_SECRET",
-  "HUB_AUTH_CALLBACK_URL"
+  "NEXTAUTH_SECRET",
 ];
 
 for (const key of requiredEnv) {
@@ -18,39 +20,14 @@ if (issuer !== "https://auth.livraone.com/realms/livraone") {
   );
 }
 
-export const authConfig = {
-  issuer,
-  clientId: process.env.HUB_AUTH_CLIENT_ID,
-  clientSecret: process.env.HUB_AUTH_CLIENT_SECRET,
-  callbackUrl: process.env.HUB_AUTH_CALLBACK_URL
-};
-
-import KeycloakProviderImport from "next-auth/providers/keycloak";
-const KeycloakProvider = KeycloakProviderImport?.default ?? KeycloakProviderImport;
-
 export const authOptions = {
   providers: [
     KeycloakProvider({
-      clientId: authConfig.clientId,
-      clientSecret: authConfig.clientSecret,
-      issuer: authConfig.issuer,
-      client: { id: authConfig.clientId, secret: authConfig.clientSecret }
-    })
+      clientId: process.env.HUB_AUTH_CLIENT_ID,
+      clientSecret: process.env.HUB_AUTH_CLIENT_SECRET,
+      issuer,
+    }),
   ],
-  callbacks: {
-    async jwt({ token, account, profile }) {
-      if (profile?.realm_access?.roles) {
-        token.realm_access = profile.realm_access;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      session.realm_access = token.realm_access ?? session.realm_access;
-      return session;
-    }
-  },
-  session: {
-    strategy: "jwt"
-  },
-  secret: process.env.NEXTAUTH_SECRET
+  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
 };
