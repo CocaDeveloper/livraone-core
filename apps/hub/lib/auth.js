@@ -25,7 +25,8 @@ export const authConfig = {
   callbackUrl: process.env.HUB_AUTH_CALLBACK_URL
 };
 
-import KeycloakProvider from "next-auth/providers/keycloak";
+import KeycloakProviderImport from "next-auth/providers/keycloak";
+const KeycloakProvider = KeycloakProviderImport?.default ?? KeycloakProviderImport;
 
 export const authOptions = {
   providers: [
