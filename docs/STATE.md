@@ -33,3 +33,10 @@ Evidence:
 - $EVIDENCE/T1.nextauth.invoice.js.txt
 - $EVIDENCE/T4.invoice.signin.headers.txt
 - $EVIDENCE/T5.hub.auth.gate.log
+
+PHASE 9 — Invoice Live Integration → PASS
+
+Evidence:
+- $EVIDENCE/T1.nextauth.invoice.js.txt
+- $EVIDENCE/T4.invoice.signin.headers.txt
+- $EVIDENCE/T5.hub.auth.gate.log
