@@ -33,5 +33,15 @@ docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" up -d
 sleep 6
 docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" ps > "$EVIDENCE/T3.compose.ps.txt"
 
-echo "PHASE9-INFRA=PASS"
-echo "Evidence: $EVIDENCE"
+curl -skI https://hub.livraone.com/ | tee "$EVIDENCE/T4.hub.headers.txt"
+curl -skI https://invoice.livraone.com/ | tee "$EVIDENCE/T5.invoice.headers.txt"
+curl -skI https://hub.livraone.com/api/auth/signin/keycloak | tee "$EVIDENCE/T6.auth.headers.txt"
+
+cat <<EOF > "$EVIDENCE/SUMMARY.txt"
+PHASE9-INFRA=PASS
+hub=$(sed -n '1p' "$EVIDENCE/T4.hub.headers.txt")
+invoice=$(sed -n '1p' "$EVIDENCE/T5.invoice.headers.txt")
+auth=$(sed -n '1p' "$EVIDENCE/T6.auth.headers.txt")
+EOF
+
+echo "PHASE9-INFRA=PASS – evidence at $EVIDENCE"
