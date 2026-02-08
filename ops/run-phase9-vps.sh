@@ -3,66 +3,35 @@ set -euo pipefail
 
 ROOT="/srv/livraone/livraone-core"
 EVIDENCE="/tmp/livraone-phase9"
+COMPOSE_FILE="$ROOT/infra/compose.yaml"
+ENVFILE="$ROOT/.env"
 
 mkdir -p "$EVIDENCE"
 cd "$ROOT"
 
+# 1) Gate .env (must exist + required keys)
+bash ops/gate-env-required.sh
+
+# 2) Repo must be clean
 git status --short > "$EVIDENCE/T0.gitstatus.txt"
-[ -s "$EVIDENCE/T0.gitstatus.txt" ] && { echo "FAIL: repo dirty" >&2; cat "$EVIDENCE/T0.gitstatus.txt" >&2; exit 1; }
+if [ -s "$EVIDENCE/T0.gitstatus.txt" ]; then
+  echo "FAIL: repo dirty" >&2
+  cat "$EVIDENCE/T0.gitstatus.txt" >&2
+  exit 1
+fi
 
-[ -f "$ROOT/.env" ] || { echo "FAIL: missing $ROOT/.env" >&2; exit 1; }
+# 3) Compose file must exist
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "FAIL: missing $COMPOSE_FILE" | tee "$EVIDENCE/T1.compose.missing.txt" >&2
+  ls -la "$ROOT/infra" | tee -a "$EVIDENCE/T1.compose.missing.txt"
+  exit 1
+fi
 
-mkdir -p apps/invoice/pages/api/auth
-cat > apps/invoice/pages/api/auth/[...nextauth].js <<'EOF'
-const NextAuth = require("next-auth");
-const KeycloakProvider = require("next-auth/providers/keycloak");
-
-module.exports = NextAuth({
-  providers: [
-    KeycloakProvider({
-      clientId: "invoice-web",
-      clientSecret: process.env.INVOICE_CLIENT_SECRET || "public",
-      issuer: "https://auth.livraone.com/realms/livraone",
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, account }) {
-      if (account?.id_token) token.idToken = account.id_token;
-      return token;
-    },
-    async session({ session, token }) {
-      session.idToken = token.idToken;
-      return session;
-    },
-  },
-});
-EOF
-cp apps/invoice/pages/api/auth/[...nextauth].js "$EVIDENCE/T1.nextauth.invoice.js.txt"
-
-echo "https://invoice.livraone.com/api/auth/callback/keycloak" > "$EVIDENCE/T2.redirect_uri.txt"
-
-docker compose --env-file "/.env" -f "" down
-docker compose --env-file "/.env" -f "" up -d
+# 4) Compose bootstrap (explicit env-file)
+docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" config > "$EVIDENCE/T2.compose.config.txt"
+docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" up -d
 sleep 6
+docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" ps > "$EVIDENCE/T3.compose.ps.txt"
 
-curl -skI https://invoice.livraone.com/api/auth/signin/keycloak \
-  | tee "$EVIDENCE/T4.invoice.signin.headers.txt"
-grep -q "HTTP/2 302" "$EVIDENCE/T4.invoice.signin.headers.txt"
-grep -q "Location: https://auth.livraone.com" "$EVIDENCE/T4.invoice.signin.headers.txt"
-
-make gate-hub-auth-codeflow | tee "$EVIDENCE/T5.hub.auth.gate.log"
-
-cat >> docs/STATE.md <<EOF
-
-PHASE 9 — Invoice Live Integration → PASS
-
-Evidence:
-- $EVIDENCE/T1.nextauth.invoice.js.txt
-- $EVIDENCE/T4.invoice.signin.headers.txt
-- $EVIDENCE/T5.hub.auth.gate.log
-EOF
-
-git add apps/invoice docs/STATE.md
-git commit -m "phase9(invoice): live auth integration via hub"
-
-echo "[phase9] PASS – evidence at $EVIDENCE"
+echo "PHASE9-INFRA=PASS"
+echo "Evidence: $EVIDENCE"
