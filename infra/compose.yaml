@@ -69,6 +69,7 @@ services:
       - NEXTAUTH_URL=https://hub.livraone.com
       - HUB_API_URL=https://hub.livraone.com/api
       - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+      - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.hub.loadbalancer.server.port=3000"
@@ -91,6 +92,7 @@ services:
       - NODE_ENV=production
       - NEXTAUTH_URL=https://invoice.livraone.com
       - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+      - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.invoice.loadbalancer.server.port=3000"
