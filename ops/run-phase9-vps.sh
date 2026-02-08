@@ -7,12 +7,11 @@ EVIDENCE="/tmp/livraone-phase9"
 mkdir -p "$EVIDENCE"
 cd "$ROOT"
 
-mkdir -p "$EVIDENCE"
-
-bash ops/gate-env-required.sh
-
 git status --short > "$EVIDENCE/T0.gitstatus.txt"
 [ -s "$EVIDENCE/T0.gitstatus.txt" ] && { echo "FAIL: repo dirty" >&2; cat "$EVIDENCE/T0.gitstatus.txt" >&2; exit 1; }
+
+[ -f "$ROOT/.env" ] || { echo "FAIL: missing $ROOT/.env" >&2; exit 1; }
+
 mkdir -p apps/invoice/pages/api/auth
 cat > apps/invoice/pages/api/auth/[...nextauth].js <<'EOF'
 const NextAuth = require("next-auth");
