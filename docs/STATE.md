@@ -26,3 +26,10 @@ PASS criteria: all gates must run OK with strict issuer checks; evidence stored 
 | Hub admin API enforces RBAC | FAIL | `./scripts/gate-hub-rbac.sh` | Ensures unauthenticated requests are denied and optional admin credentials can exercise `/api/admin/ping`. |
 
 PASS criteria: both gates run OK, `apps/hub` enforces the exact issuer and surfaces realm roles in `/api/admin/ping`.
+
+PHASE 9 — Invoice Live Integration → PASS
+
+Evidence:
+- $EVIDENCE/T1.nextauth.invoice.js.txt
+- $EVIDENCE/T4.invoice.signin.headers.txt
+- $EVIDENCE/T5.hub.auth.gate.log
