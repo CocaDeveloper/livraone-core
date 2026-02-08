@@ -41,8 +41,8 @@ cp apps/invoice/pages/api/auth/[...nextauth].js "$EVIDENCE/T1.nextauth.invoice.j
 
 echo "https://invoice.livraone.com/api/auth/callback/keycloak" > "$EVIDENCE/T2.redirect_uri.txt"
 
-docker compose down
-docker compose up -d
+docker compose --env-file "/.env" -f "" down
+docker compose --env-file "/.env" -f "" up -d
 sleep 6
 
 curl -skI https://invoice.livraone.com/api/auth/signin/keycloak \
