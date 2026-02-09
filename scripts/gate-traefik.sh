@@ -42,7 +42,9 @@ if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
   exit 0
 fi
 
-bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
+  bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+fi
 container=$(docker compose -f "$compose" ps -q "$service")
 if [[ -z "$container" ]]; then
   echo "Traefik container not running"

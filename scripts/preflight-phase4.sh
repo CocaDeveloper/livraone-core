@@ -46,7 +46,9 @@ for bin in docker curl dig; do
 done
 
 
-bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
+  bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+fi
 if ! docker compose version >/dev/null 2>&1; then
   echo "preflight: docker compose plugin is missing"
   exit 1

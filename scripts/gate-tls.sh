@@ -14,7 +14,9 @@ if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
 fi
 
 fetch_logs() {
-bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+  if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
+    bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+  fi
   docker compose -f "$compose" logs traefik --tail 200 2>/dev/null || true
 }
 
