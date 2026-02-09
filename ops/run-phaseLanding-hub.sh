@@ -17,6 +17,7 @@ if ! grep -q "LIVRAONE-HUB-LANDING-OK" apps/hub/pages/index.tsx; then
 fi
 cp apps/hub/pages/index.tsx "$EVIDENCE/T1.landing.copy.txt"
 
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
 docker compose down
 docker compose up -d
 sleep 6

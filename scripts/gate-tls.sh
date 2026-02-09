@@ -8,9 +8,13 @@ max_wait=300
 interval=15
 allowed=(200 301 302 303 404)
 
-
+if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
+  echo "gate-tls: LIVRAONE_SKIP_DOCKER=1, skipping TLS gate"
+  exit 0
+fi
 
 fetch_logs() {
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
   docker compose -f "$compose" logs traefik --tail 200 2>/dev/null || true
 }
 

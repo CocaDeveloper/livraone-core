@@ -28,6 +28,7 @@ if [ ! -f "$COMPOSE_FILE" ]; then
 fi
 
 # 4) Compose bootstrap (explicit env-file)
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
 docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" config > "$EVIDENCE/T2.compose.config.txt"
 docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" up -d
 sleep 6

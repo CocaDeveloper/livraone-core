@@ -29,6 +29,7 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # 03 compose config (redact tokens)
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
 docker compose --env-file .env -f infra/compose.yaml config 2>&1 \
   | sed -E 's/(CF_API_TOKEN=)[^[:space:]"]+/\\1REDACTED/g; s/(CLOUDFLARE_[^=]+=)[^[:space:]"]+/\\1REDACTED/g' \
   | tee "$EVID/03.compose-config.redacted.log"

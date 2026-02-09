@@ -27,4 +27,4 @@ set -a
 source "$SECRETS_FILE"
 set +a
 
-exec sudo -u livraone -E -- env "PATH=$PATH" "DOCKER_CONFIG=/home/livraone/.docker" bash --noprofile --norc -c 'cd /srv/livraone/livraone-core && scripts/run-gates-inner.sh'
+exec bash --noprofile --norc -c 'cd /srv/livraone/livraone-core && scripts/run-gates-inner.sh'

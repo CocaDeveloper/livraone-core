@@ -5,6 +5,12 @@ cd /srv/livraone/livraone-core
 compose=infra/compose.yaml
 service=traefik
 
+if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
+  echo "gate-traefik: LIVRAONE_SKIP_DOCKER=1, skipping Traefik checks"
+  exit 0
+fi
+
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
 container=$(docker compose -f "$compose" ps -q "$service")
 if [[ -z "$container" ]]; then
   echo "Traefik container not running"

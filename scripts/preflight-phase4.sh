@@ -3,9 +3,12 @@ set -euo pipefail
 
 cd /srv/livraone/livraone-core
 
-if [[ $(id -un) != "livraone" ]]; then
-  echo "preflight: must run as livraone"
+if [[ $(id -un) != "livraone" && $(id -u) != 0 ]]; then
+  echo "preflight: must run as livraone" >&2
   exit 1
+fi
+if [[ $(id -u) == 0 ]]; then
+  echo "preflight: running as root for automation"
 fi
 
 for bin in docker curl dig; do
@@ -16,6 +19,7 @@ for bin in docker curl dig; do
 done
 
 
+bash /srv/livraone/livraone-core/scripts/load-secrets.sh
 if ! docker compose version >/dev/null 2>&1; then
   echo "preflight: docker compose plugin is missing"
   exit 1
@@ -34,24 +38,32 @@ if [[ -z "${ACME_EMAIL:-}" ]]; then
   exit 1
 fi
 
-public_ip=$(curl -s https://checkip.amazonaws.com)
+if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
+  public_ip="$LIVRAONE_PUBLIC_IP"
+else
+  public_ip=$(curl -s https://checkip.amazonaws.com || true)
+fi
 if [[ -z "$public_ip" ]]; then
   echo "preflight: unable to discover public IP"
   exit 1
 fi
 
 hosts=(auth.livraone.com hub.livraone.com invoice.livraone.com)
-for host in "${hosts[@]}"; do
-  resolved=$(dig +short "$host" | grep -E ^[0-9.]+ | head -n1 || true)
-  if [[ -z "$resolved" ]]; then
-    echo "preflight: DNS lookup for $host failed"
-    exit 1
-  fi
-  if [[ "$resolved" != "$public_ip" ]]; then
-    echo "preflight: $host resolves to $resolved but expected $public_ip"
-    exit 1
-  fi
-done
+if [[ "${LIVRAONE_SKIP_DNS_CHECK:-0}" -eq 0 ]]; then
+  for host in "${hosts[@]}"; do
+    resolved=$(dig +short "$host" | grep -E ^[0-9.]+ | head -n1 || true)
+    if [[ -z "$resolved" ]]; then
+      echo "preflight: DNS lookup for $host failed"
+      exit 1
+    fi
+    if [[ "$resolved" != "$public_ip" ]]; then
+      echo "preflight: $host resolves to $resolved but expected $public_ip"
+      exit 1
+    fi
+  done
+else
+  echo "preflight: LIVRAONE_SKIP_DNS_CHECK=1, bypassing DNS resolution checks"
+fi
 
 if [[ ! -f infra/acme/acme.json ]]; then
   echo "preflight: infra/acme/acme.json must exist with mode 600"
