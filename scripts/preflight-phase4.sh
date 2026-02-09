@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# PHASE9_NOWRITE_PUBLIC_IP: allow providing LIVRAONE_PUBLIC_IP at runtime and never write /etc here
+if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
+  if [[ "${LIVRAONE_PUBLIC_IP}" = "127.0.0.1" ]]; then
+    echo "preflight: LIVRAONE_PUBLIC_IP cannot be 127.0.0.1" >&2
+    exit 1
+  fi
+  echo "preflight: using LIVRAONE_PUBLIC_IP from environment: ${LIVRAONE_PUBLIC_IP}"
+fi
+
 cd /srv/livraone/livraone-core
 
 if [[ $(id -un) != "livraone" && $(id -u) != 0 ]]; then
@@ -10,6 +19,24 @@ fi
 if [[ $(id -u) == 0 ]]; then
   echo "preflight: running as root for automation"
 fi
+
+discover_public_ip_local() {
+  if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
+    echo "$LIVRAONE_PUBLIC_IP"
+    return 0
+  fi
+  while read -r ip; do
+    [[ -z "$ip" ]] && continue
+    case "$ip" in
+      10.*|192.168.*|169.254.*|172.1[6-9].*|172.2[0-9].*|172.3[0-1].*|100.6[4-9].*|100.7[0-9].*|100.8[0-9].*|100.9[0-9].*|100.1[0-1][0-9].*|100.12[0-7].*)
+        continue
+        ;;
+    esac
+    echo "$ip"
+    return 0
+  done < <(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+  return 1
+}
 
 for bin in docker curl dig; do
   if ! command -v "$bin" >/dev/null 2>&1; then
@@ -38,13 +65,10 @@ if [[ -z "${ACME_EMAIL:-}" ]]; then
   exit 1
 fi
 
-if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
-  public_ip="$LIVRAONE_PUBLIC_IP"
-else
-  public_ip=$(curl -s https://checkip.amazonaws.com || true)
-fi
+public_ip="$(discover_public_ip_local || true)"
 if [[ -z "$public_ip" ]]; then
-  echo "preflight: unable to discover public IP"
+  echo "preflight: unable to discover public IP" >&2
+  echo "preflight: please set LIVRAONE_PUBLIC_IP in /etc/livraone/hub.env for this host" >&2
   exit 1
 fi
 
