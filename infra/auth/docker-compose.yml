@@ -5,7 +5,7 @@ services:
     image: postgres:16
     restart: unless-stopped
     env_file:
-      - ../.env
+      - /etc/livraone/hub.env
     volumes:
       - postgres-auth-data:/var/lib/postgresql/data
     networks:
@@ -15,7 +15,7 @@ services:
     image: quay.io/keycloak/keycloak:26.1.0
     restart: unless-stopped
     env_file:
-      - ../.env
+      - /etc/livraone/hub.env
     entrypoint: ["/bin/sh", "-c", "/opt/keycloak/bin/kc.sh build && exec /opt/keycloak/bin/kc.sh start --optimized --http-enabled=true"]
     environment:
       - KC_PROXY=edge
