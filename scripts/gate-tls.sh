@@ -8,19 +8,13 @@ max_wait=300
 interval=15
 allowed=(200 301 302 303 404)
 
-if [[ ! -f .env ]]; then
-  echo "gate-tls: .env file missing"
-  exit 1
-fi
 
 
 fetch_logs() {
   docker compose -f "$compose" logs traefik --tail 200 2>/dev/null || true
 }
 
-set -a
-source .env
-set +a
+# env preloaded by scripts/run-gates.sh
 
 if [[ -z "${CF_API_TOKEN:-}" ]]; then
   echo "gate-tls: CF_API_TOKEN is empty"

@@ -8,8 +8,6 @@ services:
     image: traefik:v3.0.0
     container_name: traefik
     restart: unless-stopped
-    env_file:
-      - /srv/livraone/livraone-core/.env
     environment:
       - CF_API_TOKEN
       - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN}
@@ -62,14 +60,16 @@ services:
       dockerfile: Dockerfile
     container_name: hub
     restart: unless-stopped
-    env_file:
-      - /srv/livraone/livraone-core/.env
     environment:
       - NODE_ENV=production
       - NEXTAUTH_URL=https://hub.livraone.com
       - HUB_API_URL=https://hub.livraone.com/api
       - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
       - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
+      - HUB_AUTH_CLIENT_ID=${HUB_AUTH_CLIENT_ID}
+      - HUB_AUTH_CLIENT_SECRET=${HUB_AUTH_CLIENT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - HUB_AUTH_CALLBACK_URL=${HUB_AUTH_CALLBACK_URL}
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.hub.loadbalancer.server.port=3000"
@@ -86,13 +86,15 @@ services:
       dockerfile: Dockerfile
     container_name: invoice
     restart: unless-stopped
-    env_file:
-      - /srv/livraone/livraone-core/.env
     environment:
       - NODE_ENV=production
       - NEXTAUTH_URL=https://invoice.livraone.com
       - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
       - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
+      - HUB_AUTH_CLIENT_ID=${HUB_AUTH_CLIENT_ID}
+      - HUB_AUTH_CLIENT_SECRET=${HUB_AUTH_CLIENT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - HUB_AUTH_CALLBACK_URL=${HUB_AUTH_CALLBACK_URL}
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.invoice.loadbalancer.server.port=3000"

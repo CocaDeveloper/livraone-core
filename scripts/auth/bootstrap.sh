@@ -2,7 +2,7 @@
 set -euo pipefail
 
 BASE_DIR="/srv/livraone/livraone-core"
-ENV_FILE="$BASE_DIR/.env"
+ENV_FILE="/etc/livraone/hub.env"
 REALM="livraone"
 KEYCLOAK_HOST="localhost"
 KEYCLOAK_PORT="8080"
@@ -10,6 +10,12 @@ KEYCLOAK_URL="http://$KEYCLOAK_HOST:$KEYCLOAK_PORT"
 
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "env file $ENV_FILE not found" >&2
+  exit 1
+fi
+
+perm=$(stat -c '%a' "$ENV_FILE")
+if [[ "$perm" != "600" && "$perm" != "640" ]]; then
+  echo "env file $ENV_FILE must be mode 600 or 640" >&2
   exit 1
 fi
 

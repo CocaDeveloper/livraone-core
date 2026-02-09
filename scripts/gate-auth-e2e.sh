@@ -2,15 +2,6 @@
 set -euo pipefail
 
 cd /srv/livraone/livraone-core
-ENV_FILE=".env"
-if [[ ! -f "$ENV_FILE" ]]; then
-  echo "$ENV_FILE missing" >&2
-  exit 1
-fi
-set -a
-# shellcheck disable=SC1090
-source "$ENV_FILE"
-set +a
 if [[ -z "${KEYCLOAK_HUB_SECRET:-}" ]]; then
   echo "KEYCLOAK_HUB_SECRET is required" >&2
   exit 1

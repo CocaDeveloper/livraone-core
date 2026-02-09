@@ -15,19 +15,11 @@ for bin in docker curl dig; do
   fi
 done
 
+
 if ! docker compose version >/dev/null 2>&1; then
   echo "preflight: docker compose plugin is missing"
   exit 1
 fi
-
-if [[ ! -f .env ]]; then
-  echo "preflight: .env file is missing; copy .env.example and fill in values"
-  exit 1
-fi
-
-set -a
-source .env
-set +a
 
 if [[ -z "${CF_API_TOKEN:-}" ]]; then
   echo "preflight: CF_API_TOKEN must be set"
