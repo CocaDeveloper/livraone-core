@@ -1,0 +1,35 @@
+name: gates
+
+on:
+  pull_request:
+  push:
+    branches: [ main, phase9-fix ]
+  workflow_dispatch:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CI secrets loader (export whitelist)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/load-secrets-from-actions.sh
+
+      - name: Run gates (no skips)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/run-gates.sh
+
+      - name: Upload evidence (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gates-evidence
+          path: /tmp/livraone-*
+          if-no-files-found: ignore
