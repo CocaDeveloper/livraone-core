@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: "true"
+      AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
+      KC_REALM: ${{ secrets.KC_REALM }}
+      KEYCLOAK_ISSUER: ${{ secrets.KEYCLOAK_ISSUER }}
+      CLOUDFLARE_DNS_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
+      CLOUDFLARE_ZONE_API_TOKEN: ${{ secrets.CLOUDFLARE_ZONE_API_TOKEN }}
+      LIVRAONE_PUBLIC_IP: ${{ secrets.LIVRAONE_PUBLIC_IP }}
     steps:
       - uses: actions/checkout@v4
 
