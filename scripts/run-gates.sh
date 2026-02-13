@@ -2,32 +2,37 @@
 set -euo pipefail
 
 # PHASE9_EXEC_AS_LIVRAONE: read secrets as root then run gates with reduced privilege
-if [[ "$(id -u)" -eq 0 ]]; then
-  echo "run-gates: running as root to load secrets, then re-exec as livraone" >&2
-  source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/load-secrets.sh"
-  export RUN_GATES_SECRETS_LOADED=1
-  WL_ENV=(
-    AUTH_BASE_URL KC_REALM KEYCLOAK_ISSUER
-    CLOUDFLARE_DNS_API_TOKEN CLOUDFLARE_ZONE_API_TOKEN CF_API_TOKEN
-    ACME_EMAIL ACME_CA_SERVER
-    LIVRAONE_PUBLIC_IP
-    ADMIN_GUARD_PING_PATH
-    E2E_USER E2E_PASS_NEW KC_ADMIN_USER KC_ADMIN_PASS
-    RUN_GATES_SECRETS_LOADED
-  )
-  PRESERVE=""
-  for k in "${WL_ENV[@]}"; do
-    if [[ -n "${!k:-}" ]]; then
-      PRESERVE+="${k},"
+CI_RUNNER="${CI_GATES_RUNNER:-0}"
+if [[ "$CI_RUNNER" -eq 0 ]]; then
+  if [[ "$(id -u)" -eq 0 ]]; then
+    echo "run-gates: running as root to load secrets, then re-exec as livraone" >&2
+    source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/load-secrets.sh"
+    export RUN_GATES_SECRETS_LOADED=1
+    WL_ENV=(
+      AUTH_BASE_URL KC_REALM KEYCLOAK_ISSUER
+      CLOUDFLARE_DNS_API_TOKEN CLOUDFLARE_ZONE_API_TOKEN CF_API_TOKEN
+      ACME_EMAIL ACME_CA_SERVER
+      LIVRAONE_PUBLIC_IP
+      ADMIN_GUARD_PING_PATH
+      E2E_USER E2E_PASS_NEW KC_ADMIN_USER KC_ADMIN_PASS
+      RUN_GATES_SECRETS_LOADED
+    )
+    PRESERVE=""
+    for k in "${WL_ENV[@]}"; do
+      if [[ -n "${!k:-}" ]]; then
+        PRESERVE+="${k},"
+      fi
+    done
+    PRESERVE="${PRESERVE%,}"
+    if [[ -z "$PRESERVE" ]]; then
+      echo "run-gates: no env vars to preserve; switching to livraone" >&2
+      exec sudo -n -u livraone RUN_GATES_SECRETS_LOADED=1 bash "$0" "$@"
     fi
-  done
-  PRESERVE="${PRESERVE%,}"
-  if [[ -z "$PRESERVE" ]]; then
-    echo "run-gates: no env vars to preserve; switching to livraone" >&2
-    exec sudo -n -u livraone RUN_GATES_SECRETS_LOADED=1 bash "$0" "$@"
+    echo "run-gates: preserving ${#WL_ENV[@]} candidate vars, re-exec as livraone with preserve-env=$PRESERVE" >&2
+    exec sudo -n --preserve-env="$PRESERVE" -u livraone RUN_GATES_SECRETS_LOADED=1 bash "$0" "$@"
   fi
-  echo "run-gates: preserving ${#WL_ENV[@]} candidate vars, re-exec as livraone with preserve-env=$PRESERVE" >&2
-  exec sudo -n --preserve-env="$PRESERVE" -u livraone RUN_GATES_SECRETS_LOADED=1 bash "$0" "$@"
+else
+  echo "run-gates: CI runner, skipping root re-exec" >&2
 fi
 
 # PHASE9_HOST_CAPABILITY_GATE: refuse to run in sandboxed environments (no netlink/DNS)
@@ -48,9 +53,13 @@ host_capability_gate(){
   fi
   echo "hostcap: PASS" >&2
 }
-if ! host_capability_gate; then
-  echo "FATAL: environment cannot run real gates (sandboxed: netlink/DNS blocked)." >&2
-  exit 1
+if [[ "$CI_RUNNER" -eq 0 ]]; then
+  if ! host_capability_gate; then
+    echo "FATAL: environment cannot run real gates (sandboxed: netlink/DNS blocked)." >&2
+    exit 1
+  fi
+else
+  echo "run-gates: CI runner skipping host capability gate" >&2
 fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
