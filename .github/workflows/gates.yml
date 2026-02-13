@@ -26,11 +26,11 @@ jobs:
           set -euo pipefail
           bash scripts/ci/load-secrets-from-actions.sh
 
-      - name: Run gates (no skips)
+      - name: Run gates (non-root CI)
         shell: bash
         run: |
           set -euo pipefail
-          bash scripts/run-gates.sh
+          bash scripts/ci/run-gates.sh
 
       - name: Upload evidence (if present)
         if: always()

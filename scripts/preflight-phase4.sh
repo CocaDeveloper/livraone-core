@@ -12,12 +12,16 @@ fi
 
 cd /srv/livraone/livraone-core
 
-if [[ $(id -un) != "livraone" && $(id -u) != 0 ]]; then
-  echo "preflight: must run as livraone" >&2
-  exit 1
-fi
-if [[ $(id -u) == 0 ]]; then
-  echo "preflight: running as root for automation"
+if [[ "${CI_GATES_RUNNER:-0}" -eq 1 ]]; then
+  echo "preflight: CI gate runner skipping livraone/root checks" >&2
+else
+  if [[ $(id -un) != "livraone" && $(id -u) != 0 ]]; then
+    echo "preflight: must run as livraone" >&2
+    exit 1
+  fi
+  if [[ $(id -u) == 0 ]]; then
+    echo "preflight: running as root for automation"
+  fi
 fi
 
 discover_public_ip_local() {
