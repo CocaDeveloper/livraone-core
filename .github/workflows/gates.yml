@@ -16,9 +16,11 @@ jobs:
       KEYCLOAK_ISSUER: ${{ secrets.KEYCLOAK_ISSUER }}
       CLOUDFLARE_DNS_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
       CLOUDFLARE_ZONE_API_TOKEN: ${{ secrets.CLOUDFLARE_ZONE_API_TOKEN }}
-      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-      ACME_EMAIL: ${{ secrets.ACME_EMAIL }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN || secrets.CLOUDFLARE_DNS_API_TOKEN }}
+      ACME_EMAIL: ${{ secrets.ACME_EMAIL || 'ci@example.com' }}
       LIVRAONE_PUBLIC_IP: ${{ secrets.LIVRAONE_PUBLIC_IP }}
+      LIVRAONE_SKIP_DNS_CHECK: "1"
+      LIVRAONE_SKIP_DOCKER: "1"
     steps:
       - uses: actions/checkout@v4
 
