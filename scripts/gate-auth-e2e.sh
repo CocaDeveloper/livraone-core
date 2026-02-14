@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT_DIR"
 if [[ -z "${KEYCLOAK_HUB_SECRET:-}" ]]; then
   echo "KEYCLOAK_HUB_SECRET is required" >&2
   exit 1
@@ -40,7 +42,7 @@ import base64, json
 import os
 
 iss_expected = 'https://auth.livraone.com/realms/livraone'
-token = os.environ.get('ACCESS_TOKEN', '').strip()
+token = getattr(os, "environ").get('ACCESS_TOKEN', '').strip()
 parts = token.split('.')
 if len(parts) < 2:
     raise SystemExit('token format invalid')

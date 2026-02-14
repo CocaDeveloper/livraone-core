@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+
 bash scripts/preflight-phase4.sh
 bash scripts/gate-traefik.sh
 bash scripts/gate-tls.sh

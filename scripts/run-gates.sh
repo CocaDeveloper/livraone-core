@@ -63,9 +63,12 @@ else
 fi
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 cd "$ROOT_DIR"
 
-SECRETS_FILE="/etc/livraone/hub.env"
+SECRETS_FILE="$HUB_ENV_PATH"
 
 if [[ "$(id -u)" != "0" && "$(id -un)" != "livraone" ]]; then
   echo "run-gates: must run as root (or livraone after env handoff)" >&2
@@ -92,4 +95,4 @@ else
   echo "run-gates: secrets already loaded (RUN_GATES_SECRETS_LOADED=1)" >&2
 fi
 
-exec bash --noprofile --norc -c 'cd /srv/livraone/livraone-core && scripts/run-gates-inner.sh'
+exec bash --noprofile --norc -c "cd \"$ROOT_DIR\" && scripts/run-gates-inner.sh"

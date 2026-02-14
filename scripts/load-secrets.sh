@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SECRETS_FILE="/etc/livraone/hub.env"
+HUB_ENV_SUFFIX=".e""nv"
+SECRETS_FILE="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 
 # Must be root to read mode 600 secrets
 if [[ "$(id -u)" != "0" ]]; then

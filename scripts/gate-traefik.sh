@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # PHASE9_WAIT_FOR_HEALTHY: poll container health/state with timeout to avoid flapping fails
 wait_for_healthy(){
   local svc="${1:?service}"
@@ -33,7 +35,7 @@ wait_for_healthy(){
   done
 }
 
-cd /srv/livraone/livraone-core
+cd "$ROOT_DIR"
 compose=infra/compose.yaml
 service=traefik
 
@@ -43,7 +45,7 @@ if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
 fi
 
 if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
-  bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+  bash $ROOT_DIR/scripts/load-secrets.sh
 fi
 container=$(docker compose -f "$compose" ps -q "$service")
 if [[ -z "$container" ]]; then

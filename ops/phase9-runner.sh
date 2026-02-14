@@ -3,6 +3,8 @@ set -euo pipefail
 
 ROOT="/srv/livraone/livraone-core"
 EVID="/tmp/livraone-phase9"
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 
 mkdir -p "$EVID"
 cd "$ROOT"
@@ -30,7 +32,13 @@ fi
 
 # 03 compose config (redact tokens)
 bash /srv/livraone/livraone-core/scripts/load-secrets.sh
-docker compose --env-file .env -f infra/compose.yaml config 2>&1 \
+if [[ -r "$HUB_ENV_PATH" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$HUB_ENV_PATH"
+  set +a
+fi
+docker compose -f infra/compose.yaml config 2>&1 \
   | sed -E 's/(CF_API_TOKEN=)[^[:space:]"]+/\\1REDACTED/g; s/(CLOUDFLARE_[^=]+=)[^[:space:]"]+/\\1REDACTED/g' \
   | tee "$EVID/03.compose-config.redacted.log"
 

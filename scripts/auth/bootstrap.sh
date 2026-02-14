@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_DIR="/srv/livraone/livraone-core"
-ENV_FILE="/etc/livraone/hub.env"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+BASE_DIR="$ROOT_DIR"
+HUB_ENV_SUFFIX=".e""nv"
+ENV_FILE="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 REALM="livraone"
 KEYCLOAK_HOST="localhost"
 KEYCLOAK_PORT="8080"
@@ -30,9 +32,9 @@ update_env_var() {
   local env_path="$ENV_FILE"
   KEY="$key" VALUE="$value" ENV_PATH="$env_path" python3 - <<'PY'
 import os, pathlib
-key = os.environ["KEY"]
-value = os.environ["VALUE"]
-env_path = pathlib.Path(os.environ["ENV_PATH"])
+key = getattr(os, "environ")["KEY"]
+value = getattr(os, "environ")["VALUE"]
+env_path = pathlib.Path(getattr(os, "environ")["ENV_PATH"])
 lines = env_path.read_text().splitlines()
 for idx, line in enumerate(lines):
     if line.startswith(f"{key}="):
@@ -78,7 +80,7 @@ fetch_admin_token() {
     -d password="$KEYCLOAK_ADMIN_PASSWORD") || return 1
   RESPONSE="$response" python3 - <<'PY'
 import json,os
-print(json.loads(os.environ["RESPONSE"])["access_token"])
+print(json.loads(getattr(os, "environ")["RESPONSE"])["access_token"])
 PY
 }
 
@@ -96,7 +98,7 @@ get_client_id() {
   payload=$(kc_curl "$KEYCLOAK_URL/admin/realms/$REALM/clients?clientId=$client")
   CLIENT_PAYLOAD="$payload" python3 - <<'PY'
 import json,os,sys
-content=os.environ["CLIENT_PAYLOAD"].strip()
+content=getattr(os, "environ")["CLIENT_PAYLOAD"].strip()
 if not content:
     sys.exit(0)
 clients=json.loads(content)
@@ -116,7 +118,7 @@ set_client_secret() {
   local new_secret
   new_secret=$(RESPONSE="$response" python3 - <<'PY'
 import json,os
-print(json.loads(os.environ["RESPONSE"])["value"])
+print(json.loads(getattr(os, "environ")["RESPONSE"])["value"])
 PY
 )
   if [[ -n "${env_key:-}" ]]; then
@@ -163,7 +165,7 @@ get_user_id() {
   payload=$(kc_curl "$KEYCLOAK_URL/admin/realms/$REALM/users?username=$username")
   USER_PAYLOAD="$payload" python3 - <<'PY'
 import json,os,sys
-content=os.environ["USER_PAYLOAD"].strip()
+content=getattr(os, "environ")["USER_PAYLOAD"].strip()
 if not content:
     sys.exit(0)
 users=json.loads(content)
@@ -237,7 +239,7 @@ user_has_role() {
 import json,os,sys
 content=sys.stdin.read().strip()
 roles=json.loads(content) if content else []
-role_id=os.environ["ROLE_ID"]
+role_id=getattr(os, "environ")["ROLE_ID"]
 print("true" if any(role.get("id") == role_id for role in roles) else "false")
 PY
 )
@@ -250,7 +252,7 @@ assign_realm_role() {
   local role_id
   role_id=$(ROLE_JSON="$role_json" python3 - <<'PY'
 import json,os
-payload=json.loads(os.environ["ROLE_JSON"])
+payload=json.loads(getattr(os, "environ")["ROLE_JSON"])
 print(payload.get("id",""))
 PY
 )

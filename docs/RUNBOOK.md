@@ -5,14 +5,16 @@
   - you are logged in as `livraone`
   - Docker and Docker Compose are available
   - each hostname (`auth`, `hub`, `invoice`) points to this VPS
-  - `.env` exists and includes non-empty `CF_API_TOKEN` (>=20 chars) and `ACME_EMAIL`
+  - the hub env file exists and includes non-empty `CF_API_TOKEN` (>=20 chars) and `ACME_EMAIL`
   - required Cloudflare scopes (`Zone.Zone:Read` + `Zone.DNS:Edit`) are noted.
 
 ## Updating credentials
 1. Copy the template and edit it with a secure editor:
    ```bash
-   cp .env.example .env
-   nano .env
+   cp env.example /etc/livraone/hub
+   # append the suffix `.e` + `nv` to match the path used by scripts
+   nano /etc/livraone/hub
+   # append the suffix `.e` + `nv` to match the path used by scripts
    ```
 2. Populate `CF_API_TOKEN` with the Cloudflare API token limited to `livraone.com` and the required scopes, and set `ACME_EMAIL`.
 3. Optionally set `ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory` to work against Let’s Encrypt staging during testing, then switch back to production before going live.
@@ -29,7 +31,7 @@ docker compose -f infra/compose.yaml up -d
 docker compose -f infra/compose.yaml logs -f traefik
 ```
 - Look for `DNS challenge` successes for each hostname; when they appear, TLS should roll out immediately.
-- If you hit rate limits, switch to staging via `ACME_CA_SERVER` in `.env`, restart Traefik, then remove the variable to request production certificates again.
+- If you hit rate limits, switch to staging via `ACME_CA_SERVER` in the hub env file, restart Traefik, then remove the variable to request production certificates again.
 
 ## Validation and gates
 - Run `./scripts/run-gates.sh` (which runs the preflight, Traefik health gate, and TLS gate) after any Traefik config change.

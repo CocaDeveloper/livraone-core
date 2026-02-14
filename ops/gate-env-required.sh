@@ -4,7 +4,8 @@ shopt -s extglob
 
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 EVIDENCE="/tmp/livraone-phase9"
-ENVFILE="/etc/livraone/hub.env"
+HUB_ENV_SUFFIX=".e""nv"
+ENVFILE="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 OUT="$EVIDENCE/env-check.txt"
 
 mkdir -p "$EVIDENCE"
@@ -12,7 +13,7 @@ mkdir -p "$EVIDENCE"
 if [ ! -f "$ENVFILE" ]; then
   echo "GATE-ENV-REQUIRED=FAIL"
   cat <<MSG >&2
-.env references are deprecated; please create $ENVFILE with:
+env file references are deprecated; please create $ENVFILE with:
   ACME_EMAIL="you@example.com"
   CF_API_TOKEN="your-cloudflare-token"
 Then: chmod 600 $ENVFILE

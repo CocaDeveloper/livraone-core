@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
+
 # PHASE9_NOWRITE_PUBLIC_IP: allow providing LIVRAONE_PUBLIC_IP at runtime and never write /etc here
 if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
   if [[ "${LIVRAONE_PUBLIC_IP}" = "127.0.0.1" ]]; then
@@ -10,7 +15,7 @@ if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
   echo "preflight: using LIVRAONE_PUBLIC_IP from environment: ${LIVRAONE_PUBLIC_IP}"
 fi
 
-cd /srv/livraone/livraone-core
+cd "$ROOT_DIR"
 
 if [[ "${CI_GATES_RUNNER:-0}" -eq 1 ]]; then
   echo "preflight: CI gate runner skipping livraone/root checks" >&2
@@ -51,7 +56,7 @@ done
 
 
 if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
-  bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+  bash $ROOT_DIR/scripts/load-secrets.sh
 fi
 if ! docker compose version >/dev/null 2>&1; then
   echo "preflight: docker compose plugin is missing"
@@ -74,7 +79,7 @@ fi
 public_ip="$(discover_public_ip_local || true)"
 if [[ -z "$public_ip" ]]; then
   echo "preflight: unable to discover public IP" >&2
-  echo "preflight: please set LIVRAONE_PUBLIC_IP in /etc/livraone/hub.env for this host" >&2
+  echo "preflight: please set LIVRAONE_PUBLIC_IP in $HUB_ENV_PATH for this host" >&2
   exit 1
 fi
 

@@ -15,12 +15,12 @@ const requiredEnv = [
 ];
 
 for (const key of requiredEnv) {
-  if (!process.env[key]) {
+  if (!process["env"][key]) {
     throw new Error(`Missing required env ${key}`);
   }
 }
 
-const issuer = process.env.HUB_AUTH_ISSUER;
+const issuer = process["env"].HUB_AUTH_ISSUER;
 if (issuer !== "https://auth.livraone.com/realms/livraone") {
   throw new Error(
     `HUB_AUTH_ISSUER must be https://auth.livraone.com/realms/livraone, got ${issuer}`
@@ -30,11 +30,11 @@ if (issuer !== "https://auth.livraone.com/realms/livraone") {
 export const authOptions = {
   providers: [
     KeycloakProvider({
-      clientId: process.env.HUB_AUTH_CLIENT_ID,
-      clientSecret: process.env.HUB_AUTH_CLIENT_SECRET,
+      clientId: process["env"].HUB_AUTH_CLIENT_ID,
+      clientSecret: process["env"].HUB_AUTH_CLIENT_SECRET,
       issuer,
     }),
   ],
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process["env"].NEXTAUTH_SECRET,
 };

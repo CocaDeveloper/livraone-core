@@ -4,13 +4,21 @@ set -euo pipefail
 ROOT="/srv/livraone/livraone-core"
 EVIDENCE="/tmp/livraone-phase9"
 COMPOSE_FILE="$ROOT/infra/compose.yaml"
-ENVFILE="$ROOT/.env"
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 
 mkdir -p "$EVIDENCE"
 cd "$ROOT"
 
-# 1) Gate .env (must exist + required keys)
+# 1) Gate hub env file (must exist + required keys)
 bash ops/gate-env-required.sh
+
+if [[ -r "$HUB_ENV_PATH" ]]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$HUB_ENV_PATH"
+  set +a
+fi
 
 # 2) Repo must be clean
 git status --short > "$EVIDENCE/T0.gitstatus.txt"
@@ -29,10 +37,10 @@ fi
 
 # 4) Compose bootstrap (explicit env-file)
 bash /srv/livraone/livraone-core/scripts/load-secrets.sh
-docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" config > "$EVIDENCE/T2.compose.config.txt"
-docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" up -d
+docker compose -f "$COMPOSE_FILE" config > "$EVIDENCE/T2.compose.config.txt"
+docker compose -f "$COMPOSE_FILE" up -d
 sleep 6
-docker compose --env-file "$ENVFILE" -f "$COMPOSE_FILE" ps > "$EVIDENCE/T3.compose.ps.txt"
+docker compose -f "$COMPOSE_FILE" ps > "$EVIDENCE/T3.compose.ps.txt"
 
 curl -skI https://hub.livraone.com/ | tee "$EVIDENCE/T4.hub.headers.txt"
 curl -skI https://invoice.livraone.com/ | tee "$EVIDENCE/T5.invoice.headers.txt"

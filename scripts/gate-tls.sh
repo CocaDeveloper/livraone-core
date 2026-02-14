@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT_DIR"
 compose=infra/compose.yaml
 host=hub.livraone.com
 max_wait=300
@@ -15,7 +17,7 @@ fi
 
 fetch_logs() {
   if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
-    bash /srv/livraone/livraone-core/scripts/load-secrets.sh
+    bash $ROOT_DIR/scripts/load-secrets.sh
   fi
   docker compose -f "$compose" logs traefik --tail 200 2>/dev/null || true
 }

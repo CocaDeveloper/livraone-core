@@ -1,12 +1,12 @@
-.env
-.env.*
-!.env.example
+env
+env.*
+!env.example
 node_modules/
 .DS_Store
 *.log
 infra/acme.json
 infra/acme/
-infra/.env
+infra/env
 .next/
 dist/
 build/

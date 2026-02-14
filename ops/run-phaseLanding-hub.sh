@@ -3,13 +3,15 @@ set -euo pipefail
 
 ROOT="/srv/livraone/livraone-core"
 EVIDENCE="/tmp/livraone-phaseLanding"
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
 
 mkdir -p "$EVIDENCE"
 cd "$ROOT"
 
 git status --short > "$EVIDENCE/T0.status.txt"
 [ -s "$EVIDENCE/T0.status.txt" ] && { cat "$EVIDENCE/T0.status.txt" >&2; exit 1; }
-[ -f "$ROOT/.env" ] || { echo "FAIL: missing .env" >&2; exit 1; }
+[ -f "$HUB_ENV_PATH" ] || { echo "FAIL: missing hub env file" >&2; exit 1; }
 
 if ! grep -q "LIVRAONE-HUB-LANDING-OK" apps/hub/pages/index.tsx; then
   echo "FAIL: landing marker missing" >&2

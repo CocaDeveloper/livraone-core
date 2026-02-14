@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT_DIR"
 wellknown=$(curl -s https://auth.livraone.com/realms/livraone/.well-known/openid-configuration)
 issuer=$(printf '%s' "$wellknown" | grep -o '"issuer":"[^"]*"' | head -n1 | cut -d':' -f2- | tr -d '"')
 if [[ "$issuer" != "https://auth.livraone.com/realms/livraone" ]]; then

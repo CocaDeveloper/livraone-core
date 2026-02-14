@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT_DIR"
 url="https://auth.livraone.com/realms/livraone/.well-known/openid-configuration"
 status=$(curl -s -o /dev/null -w '%{http_code}' "$url")
 if [[ "$status" != "200" ]]; then

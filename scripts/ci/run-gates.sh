@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT=/srv/livraone/livraone-core
-cd "$ROOT"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT_DIR"
 
 REQ=(
   AUTH_BASE_URL
@@ -28,4 +28,4 @@ fi
 
 export CI_GATES_RUNNER=1
 export RUN_GATES_SECRETS_LOADED=1
-exec bash --noprofile --norc -c 'cd /srv/livraone/livraone-core && scripts/run-gates-inner.sh'
+exec bash --noprofile --norc -c "cd \"$ROOT_DIR\" && scripts/run-gates-inner.sh"

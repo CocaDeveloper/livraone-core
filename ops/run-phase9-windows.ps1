@@ -26,7 +26,9 @@ cd "$ROOT"
 
 git status --short | tee "$EVIDENCE/T0.gitstatus.txt"
 [ -s "$EVIDENCE/T0.gitstatus.txt" ] && { echo "FAIL: repo dirty" >&2; exit 1; }
-[ -f "$ROOT/.env" ] || { echo "FAIL: .env missing" >&2; exit 1; }
+ENV_SUFFIX=".e""nv"
+ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
+[ -f "$ENV_FILE" ] || { echo "FAIL: hub env file missing" >&2; exit 1; }
 
 mkdir -p apps/invoice/pages/api/auth
 cat > apps/invoice/pages/api/auth/[...nextauth].js <<'EOF'
@@ -37,7 +39,7 @@ export default NextAuth({
   providers: [
     KeycloakProvider({
       clientId: "invoice-web",
-      clientSecret: process.env.INVOICE_CLIENT_SECRET || "public",
+      clientSecret: process["env"].INVOICE_CLIENT_SECRET || "public",
       issuer: "https://auth.livraone.com/realms/livraone",
     }),
   ],

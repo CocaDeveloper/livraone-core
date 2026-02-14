@@ -4,8 +4,10 @@ services:
   postgres-auth:
     image: postgres:16
     restart: unless-stopped
-    env_file:
-      - /etc/livraone/hub.env
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
     volumes:
       - postgres-auth-data:/var/lib/postgresql/data
     networks:
@@ -14,16 +16,22 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.1.0
     restart: unless-stopped
-    env_file:
-      - /etc/livraone/hub.env
-    entrypoint: ["/bin/sh", "-c", "/opt/keycloak/bin/kc.sh build && exec /opt/keycloak/bin/kc.sh start --optimized --http-enabled=true"]
     environment:
+      - KC_DB
+      - KC_DB_URL
+      - KC_DB_USERNAME
+      - KC_DB_PASSWORD
+      - KEYCLOAK_ADMIN
+      - KEYCLOAK_ADMIN_PASSWORD
+      - KEYCLOAK_HUB_SECRET
+      - KEYCLOAK_INVOICE_SECRET
       - KC_PROXY=edge
       - KC_HOSTNAME=https://auth.livraone.com
       - KC_HOSTNAME_STRICT=true
       - KC_HTTP_ENABLED=true
       - KC_HTTP_PORT=8080
       - KC_PROXY_HEADERS=xforwarded
+    entrypoint: ["/bin/sh", "-c", "/opt/keycloak/bin/kc.sh build && exec /opt/keycloak/bin/kc.sh start --optimized --http-enabled=true"]
     ports:
       - 8080:8080
     depends_on:
