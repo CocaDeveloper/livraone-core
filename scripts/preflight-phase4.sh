@@ -100,13 +100,17 @@ else
   echo "preflight: LIVRAONE_SKIP_DNS_CHECK=1, bypassing DNS resolution checks"
 fi
 
-if [[ ! -f infra/acme/acme.json ]]; then
-  echo "preflight: infra/acme/acme.json must exist with mode 600"
-  exit 1
-fi
-if [[ "$(stat -c "%a" infra/acme/acme.json)" != "600" ]]; then
-  echo "preflight: infra/acme/acme.json must be mode 600"
-  exit 1
+if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
+  echo "preflight: LIVRAONE_SKIP_DOCKER=1, skipping acme.json check"
+else
+  if [[ ! -f infra/acme/acme.json ]]; then
+    echo "preflight: infra/acme/acme.json must exist with mode 600"
+    exit 1
+  fi
+  if [[ "$(stat -c "%a" infra/acme/acme.json)" != "600" ]]; then
+    echo "preflight: infra/acme/acme.json must be mode 600"
+    exit 1
+  fi
 fi
 
 echo "preflight: user, Docker, DNS, and environment variables look healthy"
