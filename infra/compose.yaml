@@ -55,6 +55,7 @@ services:
     # TODO: replace the whoami placeholder service with the real application stacks.
 
   hub:
+    image: ${HUB_IMAGE:-livraone-hub:local}
     build:
       context: ./apps/hub
       dockerfile: Dockerfile
