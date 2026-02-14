@@ -1,0 +1,45 @@
+name: gates
+
+on:
+  pull_request:
+  push:
+    branches: [ main, phase9-fix ]
+  workflow_dispatch:
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
+      KC_REALM: ${{ secrets.KC_REALM }}
+      KEYCLOAK_ISSUER: ${{ secrets.KEYCLOAK_ISSUER }}
+      CLOUDFLARE_DNS_API_TOKEN: ${{ secrets.CLOUDFLARE_DNS_API_TOKEN }}
+      CLOUDFLARE_ZONE_API_TOKEN: ${{ secrets.CLOUDFLARE_ZONE_API_TOKEN }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN || secrets.CLOUDFLARE_DNS_API_TOKEN }}
+      ACME_EMAIL: ${{ secrets.ACME_EMAIL || 'ci@example.com' }}
+      LIVRAONE_PUBLIC_IP: ${{ secrets.LIVRAONE_PUBLIC_IP }}
+      LIVRAONE_SKIP_DNS_CHECK: "1"
+      LIVRAONE_SKIP_DOCKER: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: CI secrets loader (export whitelist)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/load-secrets-from-actions.sh
+
+      - name: Run gates (non-root CI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/run-gates.sh
+
+      - name: Upload evidence (if present)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gates-evidence
+          path: /tmp/livraone-*
+          if-no-files-found: ignore
