@@ -53,24 +53,30 @@ jobs:
           tags: ${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}
 
       - name: Deploy to VPS (production)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_SSH_PORT }}
-          script: |
-            set -euo pipefail
-            ENV_SUFFIX=".e""nv"
-            ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
-            cd /srv/livraone/livraone-core
-            source "$ENV_FILE"
-            mkdir -p .deploy
-            if docker inspect --format='{{.Config.Image}}' hub >/tmp/.hub_image 2>/dev/null; then
-              cp /tmp/.hub_image .deploy/previous_hub_image
-            fi
-            HUB_IMAGE="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml pull hub
-            HUB_IMAGE="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml up -d hub
-            printf '%s\n' "${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" > .deploy/current_hub_image
-            source "$ENV_FILE"
-            bash scripts/run-gates-inner.sh
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
+          echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" "HUB_IMAGE=$image bash -s" <<'EOF'
+          set -euo pipefail
+          ENV_SUFFIX=".e""nv"
+          ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
+          cd /srv/livraone/livraone-core
+          source "$ENV_FILE"
+          mkdir -p .deploy
+          if docker inspect --format='{{.Config.Image}}' hub >/tmp/.hub_image 2>/dev/null; then
+            cp /tmp/.hub_image .deploy/previous_hub_image
+          fi
+          HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml pull hub
+          HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml up -d hub
+          printf '%s\n' "${HUB_IMAGE}" > .deploy/current_hub_image
+          source "$ENV_FILE"
+          bash scripts/run-gates-inner.sh
+          EOF
