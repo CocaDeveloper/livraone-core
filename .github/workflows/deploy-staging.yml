@@ -62,6 +62,10 @@ jobs:
         run: |
           set -euo pipefail
           image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
+          user="${VPS_USER:-livraone}"
+          host="${VPS_HOST:-hub.livraone.com}"
+          user="${user//[$'\r\n\t ']/}"
+          host="${host//[$'\r\n\t ']/}"
           port="${VPS_SSH_PORT:-22}"
           port="${port//[^0-9]/}"
           if [ -z "$port" ]; then port=22; fi
@@ -71,7 +75,7 @@ jobs:
             printf '%s\n' "$VPS_SSH_KEY_B64" > /tmp/deploy_key
           fi
           chmod 600 /tmp/deploy_key
-          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$port" "$VPS_USER@$VPS_HOST" "HUB_IMAGE=$image bash -s" <<'EOF'
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "HUB_IMAGE=$image bash -s" <<'EOF'
           set -euo pipefail
           ENV_SUFFIX=".e""nv"
           ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
