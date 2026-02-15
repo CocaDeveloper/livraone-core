@@ -26,7 +26,9 @@ fi
 
 ENV_SUFFIX=".e""nv"
 ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
+set -a
 source "$ENV_FILE"
+set +a
 HUB_IMAGE="$IMAGE_REF" docker compose -f infra/compose.yaml pull hub
 HUB_IMAGE="$IMAGE_REF" docker compose -f infra/compose.yaml up -d hub
 printf '%s\n' "$IMAGE_REF" > "$ROOT/.deploy/current_hub_image"
