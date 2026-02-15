@@ -1,29 +1,20 @@
-:root {
-  font-family: 'Inter', system-ui, sans-serif;
-  color: #0f172a;
-  background-color: #f8fafc;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    color: #0f172a;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #eaf3ff, transparent 55%),
+      radial-gradient(900px 700px at 110% 20%, #eef8ff, transparent 55%),
+      linear-gradient(#ffffff, #f4f7fb);
+  }
 }
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #f8fafc;
-}
-.layout {
-  display: grid;
-  grid-template-columns: 240px 1fr;
-  min-height: 100vh;
-}
-.main {
-  padding: 2rem;
-}
-.sidebar {
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 1.5rem;
-}
-.sidebar nav a {
-  display: block;
-  color: #e2e8f0;
-  margin-bottom: 0.75rem;
-  text-decoration: none;
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-6xl px-4; }
 }

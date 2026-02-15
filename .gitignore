@@ -13,3 +13,17 @@ build/
 .vscode/
 acme/
 **/acme/
+**/.next/
+**/next
+**/node_modules/
+**/npm-debug.log*
+.deploy/
+**/npm-debug.log*
+**/npm-debug.log*
+**/npm-debug.log*
+**/npm-debug.log*
+**/.next/
+**/next
+**/node_modules/
+**/npm-debug.log*
+.deploy/

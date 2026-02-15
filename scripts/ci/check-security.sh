@@ -21,14 +21,16 @@ while IFS= read -r line; do
   fi
 done < <(rg -n "(echo|printf).*VPS_(HOST|USER|SSH_PORT)" "$wf_dir" || true)
 
-while IFS= read -r line; do
-  content="$(printf '%s' "$line" | cut -d: -f3-)"
-  if printf '%s' "$content" | rg -q "(echo|printf).*VPS_SSH_KEY"; then
-    if ! printf '%s' "$content" | rg -q "deploy_key|>/tmp/"; then
-      fail "workflow prints SSH key material"
-    fi
-  fi
-done < <(rg -n "(echo|printf).*VPS_SSH_KEY" "$wf_dir" || true)
+	while IFS= read -r line; do
+	  content="$(printf '%s' "$line" | cut -d: -f3-)"
+	  if printf '%s' "$content" | rg -q "(echo|printf).*VPS_SSH_KEY"; then
+	    # Allow writing the key to a file for SSH usage; forbid printing to logs.
+	    if printf '%s' "$content" | rg -q '>/tmp/|deploy_key|key_file' ; then
+	      continue
+	    fi
+	    fail "workflow prints SSH key material"
+	  fi
+	done < <(rg -n "(echo|printf).*VPS_SSH_KEY" "$wf_dir" || true)
 
 if rg -n "host_len|key_len|ssh_key_len" "$wf_dir" >/dev/null; then
   fail "workflow logs secret lengths"
