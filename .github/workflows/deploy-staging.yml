@@ -114,7 +114,9 @@ jobs:
           ENV_SUFFIX=".e""nv"
           ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
           cd /srv/livraone/livraone-core
+          set -a
           source "$ENV_FILE"
+          set +a
           export RUN_GATES_SECRETS_LOADED=1
           mkdir -p .deploy
           if docker inspect --format='{{.Config.Image}}' hub >/tmp/.hub_image 2>/dev/null; then
@@ -123,7 +125,9 @@ jobs:
           HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml pull hub
           HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml up -d hub
           printf '%s\n' "${HUB_IMAGE}" > .deploy/current_hub_image
+          set -a
           source "$ENV_FILE"
+          set +a
           export RUN_GATES_SECRETS_LOADED=1
           bash scripts/run-gates-inner.sh
           EOF
