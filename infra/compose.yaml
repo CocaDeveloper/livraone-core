@@ -91,6 +91,22 @@ services:
     networks:
       - livraone
 
+  marketing:
+    build:
+      context: ./apps/marketing
+      dockerfile: Dockerfile
+    container_name: marketing
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.marketing.loadbalancer.server.port=3000"
+      - "traefik.http.routers.marketing.rule=Host(`livraone.com`)"
+      - "traefik.http.routers.marketing.entrypoints=websecure"
+      - "traefik.http.routers.marketing.tls=true"
+      - "traefik.http.routers.marketing.tls.certresolver=cloudflare"
+    networks:
+      - livraone
+
   invoice:
     build:
       context: ./apps/invoice

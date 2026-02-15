@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    appDir: true
+  },
   env: {
     HUB_AUTH_ISSUER: process["env"].HUB_AUTH_ISSUER,
     HUB_AUTH_CLIENT_ID: process["env"].HUB_AUTH_CLIENT_ID,
