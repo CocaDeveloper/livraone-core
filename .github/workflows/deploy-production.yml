@@ -69,6 +69,8 @@ jobs:
           host="${host%%/*}"
           host="${host%%:*}"
           host="${host//[$'\r\n\t ']/}"
+          host="${host//[^A-Za-z0-9.-]/}"
+          if [ -z "$host" ]; then host="hub.livraone.com"; fi
           port="${VPS_SSH_PORT:-22}"
           port="${port//[^0-9]/}"
           if [ -z "$port" ]; then port=22; fi
