@@ -131,3 +131,38 @@ jobs:
           export RUN_GATES_SECRETS_LOADED=1
           bash scripts/run-gates-inner.sh
           EOF
+
+      - name: Release verification (staging)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          user="livraone"
+          host="hub.livraone.com"
+          port="22"
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf %s
+ "$VPS_SSH_KEY" | tr -d  > /tmp/deploy_key
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
+            :
+          else
+            printf %s
+ "$VPS_SSH_KEY_B64" > /tmp/deploy_key
+          fi
+          chmod 600 /tmp/deploy_key
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "bash -s" <<EOF_VERIFY
+          set -euo pipefail
+          EVID="/tmp/livraone-phase15"
+          mkdir -p "$EVID"
+          cd /srv/livraone/livraone-core
+          set -a
+          source /etc/livraone/hub.env
+          set +a
+          BASE_URL="https://hub.livraone.com" TIMEOUT_SEC=30 bash scripts/release/smoke.sh 2>&1 | tee "$EVID/smoke.log"
+          bash scripts/release/verify-compose.sh 2>&1 | tee "$EVID/compose.log"
+          EOF_VERIFY
