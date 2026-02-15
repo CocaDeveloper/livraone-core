@@ -18,13 +18,18 @@ jobs:
     environment: staging
     env:
       REGISTRY: ghcr.io
-      IMAGE_NAME: ghcr.io/${{ github.repository }}
       IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Compute image name
+        id: meta
+        shell: bash
+        run: |
+          echo "image=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -45,7 +50,7 @@ jobs:
           context: ./apps/hub
           file: ./apps/hub/Dockerfile
           push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: ${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}
 
       - name: Deploy to VPS (staging)
         uses: appleboy/ssh-action@v1.0.3
@@ -64,8 +69,8 @@ jobs:
             if docker inspect --format='{{.Config.Image}}' hub >/tmp/.hub_image 2>/dev/null; then
               cp /tmp/.hub_image .deploy/previous_hub_image
             fi
-            HUB_IMAGE="${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml pull hub
-            HUB_IMAGE="${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml up -d hub
-            printf '%s\n' "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}" > .deploy/current_hub_image
+            HUB_IMAGE="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml pull hub
+            HUB_IMAGE="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" docker compose -f infra/compose.yaml up -d hub
+            printf '%s\n' "${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}" > .deploy/current_hub_image
             source "$ENV_FILE"
             bash scripts/run-gates-inner.sh
