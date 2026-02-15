@@ -58,6 +58,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
         run: |
           set -euo pipefail
@@ -65,7 +66,9 @@ jobs:
           user="livraone"
           host="hub.livraone.com"
           port="22"
-          if echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > /tmp/deploy_key
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else
             printf '%s\n' "$VPS_SSH_KEY_B64" > /tmp/deploy_key
