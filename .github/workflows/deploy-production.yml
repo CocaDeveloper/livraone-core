@@ -52,6 +52,62 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}
 
+      - name: Check drift remotely (production)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          raw_host="${VPS_HOST:-}"
+          host="hub.livraone.com"
+          if [ -n "$raw_host" ]; then
+            host="$(printf '%s' "$raw_host" | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+            host="$(printf '%s' "$host" | sed -E 's#^[a-zA-Z]+://##')"
+            host="${host%%/*}"
+            host="${host##*@}"
+            if printf '%s' "$host" | grep -q '^\\[.*\\]'; then
+              host="${host#[}"
+              host="${host%%]*}"
+            elif printf '%s' "$host" | grep -q ':[0-9][0-9]*$'; then
+              host="${host%:*}"
+            fi
+            host="$(printf '%s' "$host" | tr -d '\r' | tr -cd 'A-Za-z0-9.:-')"
+            if [ -z "$host" ]; then
+              host="$(printf '%s' "$raw_host" | grep -Eo '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -n1 || true)"
+            fi
+            if [ -z "$host" ]; then
+              host="hub.livraone.com"
+            fi
+          fi
+          user="$(printf '%s' "${VPS_USER:-}" | tr -d '\r' | tr -cd 'A-Za-z0-9._-')"
+          if [ -z "$user" ]; then
+            user="livraone"
+          fi
+          port="$(printf '%s' "${VPS_SSH_PORT:-}" | tr -cd '0-9')"
+          if [ -z "$port" ]; then
+            port="22"
+          fi
+          key_file=/tmp/drift_key
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$key_file"
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > "$key_file" 2>/dev/null; then
+            :
+          else
+            printf '%s\n' "$VPS_SSH_KEY_B64" > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh -i "$key_file" -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "cd /srv/livraone/livraone-core && set -euo pipefail; DRIFT_RESULT_FILE=/tmp/livraone-drift.status bash scripts/infra/check-drift.sh"
+          result=$(ssh -i "$key_file" -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "cat /tmp/livraone-drift.status")
+          echo "drift check result: $result"
+          if printf '%s' "$result" | grep -q '^FAIL'; then
+            echo "drift check failed" >&2
+            exit 1
+          fi
+
       - name: Deploy to VPS (production)
         shell: bash
         env:
