@@ -62,20 +62,9 @@ jobs:
         run: |
           set -euo pipefail
           image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
-          user="${VPS_USER:-livraone}"
-          host="${VPS_HOST:-hub.livraone.com}"
-          user="${user//[$'\r\n\t ']/}"
-          user="${user//[^A-Za-z0-9._-]/}"
-          if [ -z "$user" ] || [[ "$user" != *[A-Za-z0-9]* ]]; then user="livraone"; fi
-          host="${host#*://}"
-          host="${host%%/*}"
-          host="${host%%:*}"
-          host="${host//[$'\r\n\t ']/}"
-          host="${host//[^A-Za-z0-9.-]/}"
-          if [ -z "$host" ] || [[ "$host" != *[A-Za-z0-9]* ]]; then host="hub.livraone.com"; fi
-          port="${VPS_SSH_PORT:-22}"
-          port="${port//[^0-9]/}"
-          if [ -z "$port" ]; then port=22; fi
+          user="livraone"
+          host="hub.livraone.com"
+          port="22"
           if echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else
