@@ -65,6 +65,8 @@ jobs:
           user="${VPS_USER:-livraone}"
           host="${VPS_HOST:-hub.livraone.com}"
           user="${user//[$'\r\n\t ']/}"
+          user="${user//[^A-Za-z0-9._-]/}"
+          if [ -z "$user" ] || [[ "$user" != *[A-Za-z0-9]* ]]; then user="livraone"; fi
           host="${host#*://}"
           host="${host%%/*}"
           host="${host%%:*}"
