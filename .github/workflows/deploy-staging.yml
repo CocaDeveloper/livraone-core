@@ -63,9 +63,29 @@ jobs:
         run: |
           set -euo pipefail
           image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
-          user="livraone"
-          host="hub.livraone.com"
-          port="22"
+          raw_host="${VPS_HOST:-}"
+          raw_host="$(printf '%s' "$raw_host" | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+          if [ -n "$raw_host" ]; then
+            host="$(printf '%s' "$raw_host" | sed -E 's#^[a-zA-Z]+://##')"
+            host="${host%%/*}"
+            if printf '%s' "$host" | grep -q '^\\[.*\\]'; then
+              host="${host#[}"
+              host="${host%%]*}"
+            elif printf '%s' "$host" | grep -q ':[0-9][0-9]*$'; then
+              host="${host%:*}"
+            fi
+            host="$(printf '%s' "$host" | tr -d '\r')"
+          else
+            host="hub.livraone.com"
+          fi
+          user="$(printf '%s' "${VPS_USER:-}" | tr -d '\r' | tr -cd 'A-Za-z0-9._-')"
+          if [ -z "$user" ]; then
+            user="livraone"
+          fi
+          port="$(printf '%s' "${VPS_SSH_PORT:-}" | tr -cd '0-9')"
+          if [ -z "$port" ]; then
+            port="22"
+          fi
           if [ -n "${VPS_SSH_KEY:-}" ]; then
             printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > /tmp/deploy_key
           elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
