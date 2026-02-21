@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# SSOT loader (no secrets printed)
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/ssot_env.sh"
+
+# Fail-fast: prevent docker compose from defaulting critical auth vars to blank
+REQUIRED_AUTH_VARS=(
+  NEXTAUTH_SECRET
+  KEYCLOAK_ISSUER
+  HUB_AUTH_ISSUER
+  HUB_AUTH_CLIENT_ID
+  HUB_AUTH_CLIENT_SECRET
+  HUB_AUTH_CALLBACK_URL
+)
+
+for v in "${REQUIRED_AUTH_VARS[@]}"; do
+  if [ -z "${!v:-}" ]; then
+    echo "FAIL: missing required auth var: $v" >&2
+    exit 1
+  fi
+done
+
 # PHASE9_EXEC_AS_LIVRAONE: read secrets as root then run gates with reduced privilege
 CI_RUNNER="${CI_GATES_RUNNER:-0}"
 if [[ "$CI_RUNNER" -eq 0 ]]; then

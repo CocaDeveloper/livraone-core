@@ -1,6 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# SSOT loader (no secrets printed)
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/ssot_env.sh"
+
+# Fail-fast: prevent docker compose from defaulting critical auth vars to blank
+REQUIRED_AUTH_VARS=(
+  NEXTAUTH_SECRET
+  KEYCLOAK_ISSUER
+  HUB_AUTH_ISSUER
+  HUB_AUTH_CLIENT_ID
+  HUB_AUTH_CLIENT_SECRET
+  HUB_AUTH_CALLBACK_URL
+)
+
+for v in "${REQUIRED_AUTH_VARS[@]}"; do
+  if [ -z "${!v:-}" ]; then
+    echo "FAIL: missing required auth var: $v" >&2
+    exit 1
+  fi
+done
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
