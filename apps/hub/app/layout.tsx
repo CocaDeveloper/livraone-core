@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import './globals.css';
-import HubSidebar from '../../components/HubSidebar';
+import HubSidebar from '../components/HubSidebar';
 
 export const metadata = {
   title: 'LivraOne Hub',
