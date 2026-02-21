@@ -4,6 +4,21 @@ networks:
     driver: bridge
 
 services:
+  hub-db:
+    image: postgres:16
+    container_name: hub-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=livraone
+      - POSTGRES_USER=livraone
+      - POSTGRES_PASSWORD=${NEXTAUTH_SECRET}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - hub_db_data:/var/lib/postgresql/data
+    networks:
+      - livraone
+
   traefik:
     image: traefik:v3.0.0
     container_name: traefik
@@ -62,6 +77,7 @@ services:
     container_name: hub
     restart: unless-stopped
     environment:
+      - DATABASE_URL=postgresql://livraone:${NEXTAUTH_SECRET}@hub-db:5432/livraone?schema=public
       - NODE_ENV=production
       - NEXTAUTH_URL=https://hub.livraone.com
       - HUB_API_URL=https://hub.livraone.com/api
@@ -100,10 +116,14 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.marketing.loadbalancer.server.port=3000"
-      - "traefik.http.routers.marketing.rule=Host(`livraone.com`) || Host(`www.livraone.com`)"
+      - "traefik.http.routers.marketing.rule=Host(`livraone.com`)"
       - "traefik.http.routers.marketing.entrypoints=websecure"
       - "traefik.http.routers.marketing.tls=true"
       - "traefik.http.routers.marketing.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-www.rule=Host(`www.livraone.com`)"
+      - "traefik.http.routers.marketing-www.entrypoints=websecure"
+      - "traefik.http.routers.marketing-www.tls=true"
+      - "traefik.http.routers.marketing-www.tls.certresolver=cloudflare"
       - "traefik.http.routers.marketing-photos.rule=Host(`photos.livraone.com`)"
       - "traefik.http.routers.marketing-photos.entrypoints=websecure"
       - "traefik.http.routers.marketing-photos.tls=true"
@@ -147,3 +167,6 @@ services:
       - "traefik.http.routers.invoice.tls.certresolver=cloudflare"
     networks:
       - livraone
+
+volumes:
+  hub_db_data: {}
