@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -RIn '<<<<<<\|>>>>>>\|=======' .; then
+          if grep -RIn --exclude-dir=.git --exclude=pr-checks.yml '<<<<<<\|>>>>>>\|=======' .; then
             echo "Conflict markers detected"
             exit 1
           fi

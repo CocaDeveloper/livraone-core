@@ -6,6 +6,11 @@ SSOT_FILE="${SSOT_FILE:-/etc/livraone/hub.env}"
 ssot_fail(){ echo "FAIL: $*" >&2; return 1; }
 
 # Load SSOT only when explicitly allowed by runner flags.
+# If secrets are already loaded (CI or injected), skip SSOT.
+if [ "${RUN_GATES_SECRETS_LOADED:-0}" = "1" ]; then
+  return 0
+fi
+
 # We treat CI_GATES_RUNNER=1 as permission to load SSOT on server runners.
 if [ "${CI_GATES_RUNNER:-0}" != "1" ]; then
   return 0
