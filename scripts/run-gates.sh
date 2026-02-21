@@ -96,6 +96,3 @@ else
 fi
 
 exec bash --noprofile --norc -c "cd \"$ROOT_DIR\" && scripts/run-gates-inner.sh"
-
-# FINAL HARD GATE
-bash scripts/gates/FINAL_HARD_GATE.sh
