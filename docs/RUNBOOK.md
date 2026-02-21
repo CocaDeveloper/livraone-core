@@ -71,3 +71,7 @@ Expected: `git status -sb` shows a clean working tree and the branch tracks `ori
 - SSOT perms not `600` or owner not `root:root`.
 - Hub DNS resolving to `127.0.0.1` instead of the VPS IP.
 - Untracked files or dirty working tree failing `FINAL_HARD_GATE`.
+
+## PR Checks
+- PRs must show the `pr-checks` workflow green before merge.
+- The check enforces: no conflict markers, no untracked files, and bash syntax sanity for gate scripts.

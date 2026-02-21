@@ -1,0 +1,70 @@
+name: pr-checks
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pr_sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fail on untracked files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git status --porcelain | grep -q '^??'; then
+            echo "Untracked files present"
+            git status --porcelain | grep '^??' || true
+            exit 1
+          fi
+
+      - name: Fail on conflict markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIn '<<<<<<\|>>>>>>\|=======' .; then
+            echo "Conflict markers detected"
+            exit 1
+          fi
+
+      - name: Bash syntax checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/run-gates.sh
+          if [ -f scripts/run-gates-inner.sh ]; then
+            bash -n scripts/run-gates-inner.sh
+          fi
+          if [ -d scripts/gates ]; then
+            for f in scripts/gates/*.sh; do
+              [ -f "$f" ] && bash -n "$f"
+            done
+          fi
+          if [ -d scripts/lib ]; then
+            for f in scripts/lib/*.sh; do
+              [ -f "$f" ] && bash -n "$f"
+            done
+          fi
+
+      - name: Optional Node sanity
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f package.json ]; then
+            if command -v npm >/dev/null 2>&1 && [ -f package-lock.json ]; then
+              npm ci --ignore-scripts
+            fi
+            if command -v node >/dev/null 2>&1; then
+              if node -e 'const p=require("./package.json");process.exit(p.scripts&&p.scripts.lint?0:1)'; then
+                if command -v npm >/dev/null 2>&1; then
+                  npm run -s lint
+                fi
+              fi
+            fi
+          fi
