@@ -100,10 +100,26 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.marketing.loadbalancer.server.port=3000"
-      - "traefik.http.routers.marketing.rule=Host(`livraone.com`)"
+      - "traefik.http.routers.marketing.rule=Host(`livraone.com`) || Host(`www.livraone.com`)"
       - "traefik.http.routers.marketing.entrypoints=websecure"
       - "traefik.http.routers.marketing.tls=true"
       - "traefik.http.routers.marketing.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-photos.rule=Host(`photos.livraone.com`)"
+      - "traefik.http.routers.marketing-photos.entrypoints=websecure"
+      - "traefik.http.routers.marketing-photos.tls=true"
+      - "traefik.http.routers.marketing-photos.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-photos.middlewares=photos-redirect@docker"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.regex=^https?://photos\\.livraone\\.com/(.*)"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.replacement=https://livraone.com/photos"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.marketing-invoice.rule=Host(`invoice.livraone.com`)"
+      - "traefik.http.routers.marketing-invoice.entrypoints=websecure"
+      - "traefik.http.routers.marketing-invoice.tls=true"
+      - "traefik.http.routers.marketing-invoice.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-invoice.middlewares=invoice-redirect@docker"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.regex=^https?://invoice\\.livraone\\.com/(.*)"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.replacement=https://livraone.com/invoice"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.permanent=true"
     networks:
       - livraone
 
