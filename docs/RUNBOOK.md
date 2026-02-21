@@ -45,3 +45,29 @@ docker compose -f infra/compose.yaml logs -f traefik
   docker compose -f infra/compose.yaml up -d
   ```
 - Use the TLS gate failure output to understand if Cloudflare permissions or DNS propagation is to blame.
+
+## History rewrite recovery
+If the branch history was rewritten, resync local state to the new remote tip:
+```bash
+git fetch origin
+git checkout phase-final-hard-gate
+git reset --hard origin/phase-final-hard-gate
+git clean -fd
+```
+Expected: `git status -sb` shows a clean working tree and the branch tracks `origin/phase-final-hard-gate`.
+
+## Release readiness checklist
+- SSOT: `/etc/livraone/hub.env` exists with `root:root` and mode `600`.
+- SSOT loader: `scripts/lib/ssot_env.sh` present and used by gates/scripts.
+- Gates: `scripts/run-gates.sh` passes locally with `PASS` results for all gates.
+- FINAL_HARD_GATE: `scripts/gates/FINAL_HARD_GATE.sh` passes and blocks dirty/untracked files.
+- Required auth env vars: `scripts/gates/gate_required_auth_env.sh` passes (no missing vars).
+- Evidence export: run evidence flow and confirm artifacts under `docs/EVIDENCE/`.
+- Notarization: create and commit a sha256 file in `docs/EVIDENCE/` for the release bundle.
+- CI mode: `CI=1` set in pipeline and gate scripts run in CI mode without interactive prompts.
+
+## Common failures
+- Missing auth vars detected by `gate_required_auth_env.sh`.
+- SSOT perms not `600` or owner not `root:root`.
+- Hub DNS resolving to `127.0.0.1` instead of the VPS IP.
+- Untracked files or dirty working tree failing `FINAL_HARD_GATE`.
