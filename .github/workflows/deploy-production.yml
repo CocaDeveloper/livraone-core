@@ -64,7 +64,6 @@ jobs:
           set -euo pipefail
           image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
           raw_host="${VPS_HOST:-}"
-          host_source="secret"
           raw_host="$(printf '%s' "$raw_host" | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
           if [ -n "$raw_host" ]; then
             host="$(printf '%s' "$raw_host" | sed -E 's#^[a-zA-Z]+://##')"
@@ -82,17 +81,10 @@ jobs:
             fi
             if [ -z "$host" ]; then
               host="hub.livraone.com"
-              host_source="fallback"
             fi
           else
             host="hub.livraone.com"
-            host_source="fallback"
           fi
-          host_len="$(printf '%s' "$host" | wc -c | tr -d '[:space:]')"
-          if [ -z "$host_len" ]; then
-            host_len="0"
-          fi
-          echo "host_source=${host_source} host_len=${host_len}"
           user="$(printf '%s' "${VPS_USER:-}" | tr -d '\r' | tr -cd 'A-Za-z0-9._-')"
           if [ -z "$user" ]; then
             user="livraone"
@@ -146,13 +138,11 @@ jobs:
           host="hub.livraone.com"
           port="22"
           if [ -n "${VPS_SSH_KEY:-}" ]; then
-            printf %s
- "$VPS_SSH_KEY" | tr -d  > /tmp/deploy_key
+            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > /tmp/deploy_key
           elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else
-            printf %s
- "$VPS_SSH_KEY_B64" > /tmp/deploy_key
+            printf '%s\n' "$VPS_SSH_KEY_B64" > /tmp/deploy_key
           fi
           chmod 600 /tmp/deploy_key
           ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "bash -s" <<EOF_VERIFY
