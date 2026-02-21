@@ -28,6 +28,7 @@ bash scripts/preflight-phase4.sh
 bash scripts/gates/gate_required_auth_env.sh
 bash scripts/gate-traefik.sh
 bash scripts/gate-tls.sh
+bash scripts/gates/marketing_lint.sh
 
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
