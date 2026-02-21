@@ -93,7 +93,8 @@ jobs:
           fi
           key_file=/tmp/drift_key
           if [ -n "${VPS_SSH_KEY:-}" ]; then
-            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$key_file"
+            printf '%s\n' "$VPS_SSH_KEY" > "$key_file"
+            tr -d '\r' < "$key_file" > "${key_file}.tmp" && mv "${key_file}.tmp" "$key_file"
           elif echo "$VPS_SSH_KEY_B64" | base64 -d > "$key_file" 2>/dev/null; then
             :
           else
@@ -150,7 +151,8 @@ jobs:
             port="22"
           fi
           if [ -n "${VPS_SSH_KEY:-}" ]; then
-            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > /tmp/deploy_key
+            printf '%s\n' "$VPS_SSH_KEY" > /tmp/deploy_key
+            tr -d '\r' < /tmp/deploy_key > /tmp/deploy_key.tmp && mv /tmp/deploy_key.tmp /tmp/deploy_key
           elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else
@@ -194,7 +196,8 @@ jobs:
           host="hub.livraone.com"
           port="22"
           if [ -n "${VPS_SSH_KEY:-}" ]; then
-            printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > /tmp/deploy_key
+            printf '%s\n' "$VPS_SSH_KEY" > /tmp/deploy_key
+            tr -d '\r' < /tmp/deploy_key > /tmp/deploy_key.tmp && mv /tmp/deploy_key.tmp /tmp/deploy_key
           elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else

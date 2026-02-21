@@ -21,7 +21,9 @@ if rg -n 'env_file' infra/compose.yaml >/dev/null; then
   fail "env_file found in infra/compose.yaml"
 fi
 
-[[ -f apps/hub/pages/api/health.js ]] || fail "health endpoint missing"
+if [[ ! -f apps/hub/app/api/health/route.ts && ! -f apps/hub/pages/api/health.js ]]; then
+  fail "health endpoint missing"
+fi
 
 if ! rg -n 'traefik\.' infra/compose.yaml >/dev/null; then
   fail "traefik labels missing"
