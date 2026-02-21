@@ -73,3 +73,6 @@ jobs:
           name: gates-evidence
           path: /tmp/livraone-*
           if-no-files-found: ignore
+
+      - name: FINAL HARD GATE
+        run: bash scripts/gates/FINAL_HARD_GATE.sh
