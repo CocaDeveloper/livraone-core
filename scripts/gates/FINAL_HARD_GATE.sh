@@ -76,8 +76,9 @@ fi
 
 POLICY_HITS="${EVID}/policy_hits.${TS}.txt"
 : > "${POLICY_HITS}"
-grep -RIn --exclude-dir=node_modules --exclude-dir=.git -E '^\s*env_file\s*:' . >> "${POLICY_HITS}" 2>/dev/null || true
-grep -RIn --exclude-dir=node_modules --exclude-dir=.git -E '(^|\s)(source|\.)\s+(\./)?\.env(\s|$)' . >> "${POLICY_HITS}" 2>/dev/null || true
+# Ignore docs and this gate itself to avoid self-matching policy text.
+grep -RIn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs --exclude=FINAL_HARD_GATE.sh -E '^\s*env_file\s*:' . >> "${POLICY_HITS}" 2>/dev/null || true
+grep -RIn --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=docs --exclude=FINAL_HARD_GATE.sh -E '(^|\s)(source|\.)\s+(\./)?\.env(\s|$)' . >> "${POLICY_HITS}" 2>/dev/null || true
 if [ -s "${POLICY_HITS}" ]; then
   sed -n '1,200p' "${POLICY_HITS}" >> "${DIAG_LOG}"
   fail "policy violation: env_file or sourcing .env detected"
