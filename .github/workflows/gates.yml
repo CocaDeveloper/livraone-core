@@ -48,6 +48,12 @@ jobs:
           set -euo pipefail
           bash scripts/ci/check-security.sh
 
+      - name: Check drift contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/check-drift-contract.sh
+
       - name: Check observability contract
         shell: bash
         run: |
