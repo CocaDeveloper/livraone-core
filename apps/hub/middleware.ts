@@ -6,6 +6,7 @@ const PUBLIC_PATHS = [
   "/api/health",
   "/api/auth",
   "/login",
+  "/post-auth",
   "/logout",
   "/favicon.ico",
   "/_next"
@@ -30,5 +31,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/:path*"]
+  matcher: ["/post-auth", "/:path*"]
 };
