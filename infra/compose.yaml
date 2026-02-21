@@ -4,15 +4,30 @@ networks:
     driver: bridge
 
 services:
+  hub-db:
+    image: postgres:16
+    container_name: hub-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=livraone
+      - POSTGRES_USER=livraone
+      - POSTGRES_PASSWORD=${NEXTAUTH_SECRET}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - hub_db_data:/var/lib/postgresql/data
+    networks:
+      - livraone
+
   traefik:
     image: traefik:v3.0.0
     container_name: traefik
     restart: unless-stopped
-    env_file:
-      - /srv/livraone/livraone-core/.env
     environment:
       - CF_API_TOKEN
-      - ACME_EMAIL
+      - CLOUDFLARE_DNS_API_TOKEN=${CF_API_TOKEN}
+      - CLOUDFLARE_ZONE_API_TOKEN=${CF_API_TOKEN}
+      - ACME_EMAIL=${ACME_EMAIL}
       - ACME_CA_SERVER
       - DOCKER_API_VERSION=1.47
       - TRAEFIK_CERTIFICATESRESOLVERS_CLOUDFLARE_ACME_CASERVER=${ACME_CA_SERVER:-https://acme-v02.api.letsencrypt.org/directory}
@@ -46,18 +61,112 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.whoami.loadbalancer.server.port=80"
-      - "traefik.http.routers.auth.rule=Host(`auth.livraone.com`)"
-      - "traefik.http.routers.auth.entrypoints=websecure"
-      - "traefik.http.routers.auth.tls=true"
-      - "traefik.http.routers.auth.tls.certresolver=cloudflare"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.livraone.com`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls=true"
+      - "traefik.http.routers.whoami.tls.certresolver=cloudflare"
+    networks:
+      - livraone
+    # TODO: replace the whoami placeholder service with the real application stacks.
+
+  hub:
+    image: ${HUB_IMAGE:-livraone-hub:local}
+    build:
+      context: ./apps/hub
+      dockerfile: Dockerfile
+    container_name: hub
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://livraone:${NEXTAUTH_SECRET}@hub-db:5432/livraone?schema=public
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://hub.livraone.com
+      - HUB_API_URL=https://hub.livraone.com/api
+      - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+      - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
+      - HUB_AUTH_CLIENT_ID=${HUB_AUTH_CLIENT_ID}
+      - HUB_AUTH_CLIENT_SECRET=${HUB_AUTH_CLIENT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - HUB_AUTH_CALLBACK_URL=${HUB_AUTH_CALLBACK_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.hub.loadbalancer.server.port=3000"
       - "traefik.http.routers.hub.rule=Host(`hub.livraone.com`)"
       - "traefik.http.routers.hub.entrypoints=websecure"
       - "traefik.http.routers.hub.tls=true"
       - "traefik.http.routers.hub.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary.rule=Host(`canary.hub.livraone.com`)"
+      - "traefik.http.routers.hub-canary.entrypoints=websecure"
+      - "traefik.http.routers.hub-canary.tls=true"
+      - "traefik.http.routers.hub-canary.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary.priority=100"
+      - "traefik.http.routers.hub-canary-header.rule=Host(`hub.livraone.com`) && Headers(`X-Canary`,`1`)"
+      - "traefik.http.routers.hub-canary-header.entrypoints=websecure"
+      - "traefik.http.routers.hub-canary-header.tls=true"
+      - "traefik.http.routers.hub-canary-header.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary-header.priority=110"
+    networks:
+      - livraone
+
+  marketing:
+    build:
+      context: ./apps/marketing
+      dockerfile: Dockerfile
+    container_name: marketing
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.marketing.loadbalancer.server.port=3000"
+      - "traefik.http.routers.marketing.rule=Host(`livraone.com`)"
+      - "traefik.http.routers.marketing.entrypoints=websecure"
+      - "traefik.http.routers.marketing.tls=true"
+      - "traefik.http.routers.marketing.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-www.rule=Host(`www.livraone.com`)"
+      - "traefik.http.routers.marketing-www.entrypoints=websecure"
+      - "traefik.http.routers.marketing-www.tls=true"
+      - "traefik.http.routers.marketing-www.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-photos.rule=Host(`photos.livraone.com`)"
+      - "traefik.http.routers.marketing-photos.entrypoints=websecure"
+      - "traefik.http.routers.marketing-photos.tls=true"
+      - "traefik.http.routers.marketing-photos.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-photos.middlewares=photos-redirect@docker"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.regex=^https?://photos\\.livraone\\.com/(.*)"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.replacement=https://livraone.com/photos"
+      - "traefik.http.middlewares.photos-redirect.redirectregex.permanent=true"
+      - "traefik.http.routers.marketing-invoice.rule=Host(`invoice.livraone.com`)"
+      - "traefik.http.routers.marketing-invoice.entrypoints=websecure"
+      - "traefik.http.routers.marketing-invoice.tls=true"
+      - "traefik.http.routers.marketing-invoice.tls.certresolver=cloudflare"
+      - "traefik.http.routers.marketing-invoice.middlewares=invoice-redirect@docker"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.regex=^https?://invoice\\.livraone\\.com/(.*)"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.replacement=https://livraone.com/invoice"
+      - "traefik.http.middlewares.invoice-redirect.redirectregex.permanent=true"
+    networks:
+      - livraone
+
+  invoice:
+    build:
+      context: ./apps/invoice
+      dockerfile: Dockerfile
+    container_name: invoice
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXTAUTH_URL=https://invoice.livraone.com
+      - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+      - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
+      - HUB_AUTH_CLIENT_ID=${HUB_AUTH_CLIENT_ID}
+      - HUB_AUTH_CLIENT_SECRET=${HUB_AUTH_CLIENT_SECRET}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - HUB_AUTH_CALLBACK_URL=${HUB_AUTH_CALLBACK_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.invoice.loadbalancer.server.port=3000"
       - "traefik.http.routers.invoice.rule=Host(`invoice.livraone.com`)"
       - "traefik.http.routers.invoice.entrypoints=websecure"
       - "traefik.http.routers.invoice.tls=true"
       - "traefik.http.routers.invoice.tls.certresolver=cloudflare"
     networks:
       - livraone
-    # TODO: replace the whoami placeholder service with the real application stacks.
+
+volumes:
+  hub_db_data: {}

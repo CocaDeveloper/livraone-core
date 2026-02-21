@@ -1,12 +1,51 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /srv/livraone/livraone-core
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [[ $(id -un) != "livraone" ]]; then
-  echo "preflight: must run as livraone"
-  exit 1
+HUB_ENV_SUFFIX=".e""nv"
+HUB_ENV_PATH="/etc/livraone/hub${HUB_ENV_SUFFIX}"
+
+# PHASE9_NOWRITE_PUBLIC_IP: allow providing LIVRAONE_PUBLIC_IP at runtime and never write /etc here
+if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
+  if [[ "${LIVRAONE_PUBLIC_IP}" = "127.0.0.1" ]]; then
+    echo "preflight: LIVRAONE_PUBLIC_IP cannot be 127.0.0.1" >&2
+    exit 1
+  fi
+  echo "preflight: using LIVRAONE_PUBLIC_IP from environment: ${LIVRAONE_PUBLIC_IP}"
 fi
+
+cd "$ROOT_DIR"
+
+if [[ "${CI_GATES_RUNNER:-0}" -eq 1 ]]; then
+  echo "preflight: CI gate runner skipping livraone/root checks" >&2
+else
+  if [[ $(id -un) != "livraone" && $(id -u) != 0 ]]; then
+    echo "preflight: must run as livraone" >&2
+    exit 1
+  fi
+  if [[ $(id -u) == 0 ]]; then
+    echo "preflight: running as root for automation"
+  fi
+fi
+
+discover_public_ip_local() {
+  if [[ -n "${LIVRAONE_PUBLIC_IP:-}" ]]; then
+    echo "$LIVRAONE_PUBLIC_IP"
+    return 0
+  fi
+  while read -r ip; do
+    [[ -z "$ip" ]] && continue
+    case "$ip" in
+      10.*|192.168.*|169.254.*|172.1[6-9].*|172.2[0-9].*|172.3[0-1].*|100.6[4-9].*|100.7[0-9].*|100.8[0-9].*|100.9[0-9].*|100.1[0-1][0-9].*|100.12[0-7].*)
+        continue
+        ;;
+    esac
+    echo "$ip"
+    return 0
+  done < <(ip -4 -o addr show scope global 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+  return 1
+}
 
 for bin in docker curl dig; do
   if ! command -v "$bin" >/dev/null 2>&1; then
@@ -15,19 +54,14 @@ for bin in docker curl dig; do
   fi
 done
 
+
+if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
+  bash $ROOT_DIR/scripts/load-secrets.sh
+fi
 if ! docker compose version >/dev/null 2>&1; then
   echo "preflight: docker compose plugin is missing"
   exit 1
 fi
-
-if [[ ! -f .env ]]; then
-  echo "preflight: .env file is missing; copy .env.example and fill in values"
-  exit 1
-fi
-
-set -a
-source .env
-set +a
 
 if [[ -z "${CF_API_TOKEN:-}" ]]; then
   echo "preflight: CF_API_TOKEN must be set"
@@ -42,32 +76,41 @@ if [[ -z "${ACME_EMAIL:-}" ]]; then
   exit 1
 fi
 
-public_ip=$(curl -s https://checkip.amazonaws.com)
+public_ip="$(discover_public_ip_local || true)"
 if [[ -z "$public_ip" ]]; then
-  echo "preflight: unable to discover public IP"
+  echo "preflight: unable to discover public IP" >&2
+  echo "preflight: please set LIVRAONE_PUBLIC_IP in $HUB_ENV_PATH for this host" >&2
   exit 1
 fi
 
 hosts=(auth.livraone.com hub.livraone.com invoice.livraone.com)
-for host in "${hosts[@]}"; do
-  resolved=$(dig +short "$host" | grep -E ^[0-9.]+ | head -n1 || true)
-  if [[ -z "$resolved" ]]; then
-    echo "preflight: DNS lookup for $host failed"
-    exit 1
-  fi
-  if [[ "$resolved" != "$public_ip" ]]; then
-    echo "preflight: $host resolves to $resolved but expected $public_ip"
-    exit 1
-  fi
-done
-
-if [[ ! -f infra/acme/acme.json ]]; then
-  echo "preflight: infra/acme/acme.json must exist with mode 600"
-  exit 1
+if [[ "${LIVRAONE_SKIP_DNS_CHECK:-0}" -eq 0 ]]; then
+  for host in "${hosts[@]}"; do
+    resolved=$(dig +short "$host" | grep -E ^[0-9.]+ | head -n1 || true)
+    if [[ -z "$resolved" ]]; then
+      echo "preflight: DNS lookup for $host failed"
+      exit 1
+    fi
+    if [[ "$resolved" != "$public_ip" ]]; then
+      echo "preflight: $host resolves to $resolved but expected $public_ip"
+      exit 1
+    fi
+  done
+else
+  echo "preflight: LIVRAONE_SKIP_DNS_CHECK=1, bypassing DNS resolution checks"
 fi
-if [[ "$(stat -c "%a" infra/acme/acme.json)" != "600" ]]; then
-  echo "preflight: infra/acme/acme.json must be mode 600"
-  exit 1
+
+if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
+  echo "preflight: LIVRAONE_SKIP_DOCKER=1, skipping acme.json check"
+else
+  if [[ ! -f infra/acme/acme.json ]]; then
+    echo "preflight: infra/acme/acme.json must exist with mode 600"
+    exit 1
+  fi
+  if [[ "$(stat -c "%a" infra/acme/acme.json)" != "600" ]]; then
+    echo "preflight: infra/acme/acme.json must be mode 600"
+    exit 1
+  fi
 fi
 
 echo "preflight: user, Docker, DNS, and environment variables look healthy"

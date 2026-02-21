@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    color: #0f172a;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #eaf3ff, transparent 55%),
+      radial-gradient(900px 700px at 110% 20%, #eef8ff, transparent 55%),
+      linear-gradient(#ffffff, #f4f7fb);
+  }
+}
+
+@layer components {
+  .container-x { @apply mx-auto w-full max-w-6xl px-4; }
+}

@@ -52,20 +52,108 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}
 
+      - name: Check drift remotely (staging)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          raw_host="${VPS_HOST:-}"
+          host="hub.livraone.com"
+          if [ -n "$raw_host" ]; then
+            host="$(printf '%s' "$raw_host" | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+            host="$(printf '%s' "$host" | sed -E 's#^[a-zA-Z]+://##')"
+            host="${host%%/*}"
+            host="${host##*@}"
+            if printf '%s' "$host" | grep -q '^\[.*\]'; then
+              host="${host#[}"
+              host="${host%%]*}"
+            elif printf '%s' "$host" | grep -q ':[0-9][0-9]*$'; then
+              host="${host%:*}"
+            fi
+            host="$(printf '%s' "$host" | tr -d '\r' | tr -cd 'A-Za-z0-9.:-')"
+            if [ -z "$host" ]; then
+              host="$(printf '%s' "$raw_host" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1 || true)"
+            fi
+            if [ -z "$host" ]; then
+              host="hub.livraone.com"
+            fi
+          fi
+          user="$(printf '%s' "${VPS_USER:-}" | tr -d '\r' | tr -cd 'A-Za-z0-9._-')"
+          if [ -z "$user" ]; then
+            user="livraone"
+          fi
+          port="$(printf '%s' "${VPS_SSH_PORT:-}" | tr -cd '0-9')"
+          if [ -z "$port" ]; then
+            port="22"
+          fi
+          key_file=/tmp/drift_key
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" > "$key_file"
+            tr -d '\r' < "$key_file" > "${key_file}.tmp" && mv "${key_file}.tmp" "$key_file"
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > "$key_file" 2>/dev/null; then
+            :
+          else
+            printf '%s\n' "$VPS_SSH_KEY_B64" > "$key_file"
+          fi
+          chmod 600 "$key_file"
+          ssh -i "$key_file" -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "cd /srv/livraone/livraone-core && set -euo pipefail; DRIFT_RESULT_FILE=/tmp/livraone-drift.status bash scripts/infra/check-drift.sh"
+          result=$(ssh -i "$key_file" -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "cat /tmp/livraone-drift.status")
+          echo "drift check result: $result"
+          if printf '%s' "$result" | grep -q '^FAIL'; then
+            echo "drift check failed" >&2
+            exit 1
+          fi
+
       - name: Deploy to VPS (staging)
         shell: bash
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
           VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
         run: |
           set -euo pipefail
           image="${{ steps.meta.outputs.image }}:${{ env.IMAGE_TAG }}"
-          user="livraone"
-          host="hub.livraone.com"
-          port="22"
-          if echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
+          raw_host="${VPS_HOST:-}"
+          raw_host="$(printf '%s' "$raw_host" | tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
+          if [ -n "$raw_host" ]; then
+            host="$(printf '%s' "$raw_host" | sed -E 's#^[a-zA-Z]+://##')"
+            host="${host%%/*}"
+            host="${host##*@}"
+            if printf '%s' "$host" | grep -q '^\[.*\]'; then
+              host="${host#[}"
+              host="${host%%]*}"
+            elif printf '%s' "$host" | grep -q ':[0-9][0-9]*$'; then
+              host="${host%:*}"
+            fi
+            host="$(printf '%s' "$host" | tr -d '\r' | tr -cd 'A-Za-z0-9.:-')"
+            if [ -z "$host" ]; then
+              host="$(printf '%s' "$raw_host" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' | head -n1 || true)"
+            fi
+            if [ -z "$host" ]; then
+              host="hub.livraone.com"
+            fi
+          else
+            host="hub.livraone.com"
+          fi
+          user="$(printf '%s' "${VPS_USER:-}" | tr -d '\r' | tr -cd 'A-Za-z0-9._-')"
+          if [ -z "$user" ]; then
+            user="livraone"
+          fi
+          port="$(printf '%s' "${VPS_SSH_PORT:-}" | tr -cd '0-9')"
+          if [ -z "$port" ]; then
+            port="22"
+          fi
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" > /tmp/deploy_key
+            tr -d '\r' < /tmp/deploy_key > /tmp/deploy_key.tmp && mv /tmp/deploy_key.tmp /tmp/deploy_key
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
             :
           else
             printf '%s\n' "$VPS_SSH_KEY_B64" > /tmp/deploy_key
@@ -76,7 +164,10 @@ jobs:
           ENV_SUFFIX=".e""nv"
           ENV_FILE="/etc/livraone/hub${ENV_SUFFIX}"
           cd /srv/livraone/livraone-core
+          set -a
           source "$ENV_FILE"
+          set +a
+          export RUN_GATES_SECRETS_LOADED=1
           mkdir -p .deploy
           if docker inspect --format='{{.Config.Image}}' hub >/tmp/.hub_image 2>/dev/null; then
             cp /tmp/.hub_image .deploy/previous_hub_image
@@ -84,6 +175,43 @@ jobs:
           HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml pull hub
           HUB_IMAGE="${HUB_IMAGE}" docker compose -f infra/compose.yaml up -d hub
           printf '%s\n' "${HUB_IMAGE}" > .deploy/current_hub_image
+          set -a
           source "$ENV_FILE"
+          set +a
+          export RUN_GATES_SECRETS_LOADED=1
           bash scripts/run-gates-inner.sh
           EOF
+
+      - name: Release verification (staging)
+        shell: bash
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_SSH_KEY_B64: ${{ secrets.VPS_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          user="livraone"
+          host="hub.livraone.com"
+          port="22"
+          if [ -n "${VPS_SSH_KEY:-}" ]; then
+            printf '%s\n' "$VPS_SSH_KEY" > /tmp/deploy_key
+            tr -d '\r' < /tmp/deploy_key > /tmp/deploy_key.tmp && mv /tmp/deploy_key.tmp /tmp/deploy_key
+          elif echo "$VPS_SSH_KEY_B64" | base64 -d > /tmp/deploy_key 2>/dev/null; then
+            :
+          else
+            printf '%s\n' "$VPS_SSH_KEY_B64" > /tmp/deploy_key
+          fi
+          chmod 600 /tmp/deploy_key
+          ssh -i /tmp/deploy_key -o StrictHostKeyChecking=no -p "$port" -l "$user" "$host" "bash -s" <<EOF_VERIFY
+          set -euo pipefail
+          EVID="/tmp/livraone-phase15"
+          mkdir -p "$EVID"
+          cd /srv/livraone/livraone-core
+          set -a
+          source /etc/livraone/hub.env
+          set +a
+          BASE_URL="https://hub.livraone.com" TIMEOUT_SEC=30 bash scripts/release/smoke.sh 2>&1 | tee "$EVID/smoke.log"
+          bash scripts/release/verify-compose.sh 2>&1 | tee "$EVID/compose.log"
+          EOF_VERIFY

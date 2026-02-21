@@ -1,0 +1,6 @@
+rules:
+  forbid_env_files: true
+  forbid_env_dotfiles: true
+  require_health_endpoint: true
+  secrets_ssot: "/etc/livraone/hub.env"
+  require_traefik_labels: true
