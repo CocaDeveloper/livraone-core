@@ -44,7 +44,7 @@ export default function HomePage() {
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a
-                  href="https://hub.livraone.com/login"
+                  href="/register"
                   className="inline-flex items-center justify-center rounded-md bg-grass-600 px-5 py-3 text-sm font-semibold text-white shadow-soft hover:bg-grass-700"
                 >
                   Try LivraOne Free
@@ -179,7 +179,7 @@ export default function HomePage() {
 
           <div className="mt-10 flex justify-center">
             <a
-              href="https://hub.livraone.com/login"
+              href="/register"
               className="inline-flex items-center justify-center rounded-md bg-grass-600 px-6 py-3 text-sm font-semibold text-white shadow-soft hover:bg-grass-700"
             >
               Get Started Free

@@ -12,15 +12,22 @@ export default function Navbar() {
             <a className="hover:text-slate-900" href="#features">Features</a>
             <a className="hover:text-slate-900" href="/pricing">Pricing</a>
             <a className="hover:text-slate-900" href="#testimonials">Testimonials</a>
-            <a className="hover:text-slate-900" href="https://hub.livraone.com/login">Login</a>
           </nav>
 
-          <a
-            href="https://hub.livraone.com/login"
-            className="inline-flex items-center justify-center rounded-md bg-grass-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-grass-700"
-          >
-            Get Started Free
-          </a>
+          <div className="flex items-center gap-3">
+            <a
+              href="/login"
+              className="hidden items-center justify-center rounded-md border border-slate-900/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-900/20 hover:text-slate-900 md:inline-flex"
+            >
+              Login
+            </a>
+            <a
+              href="/register"
+              className="inline-flex items-center justify-center rounded-md bg-grass-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-grass-700"
+            >
+              Start free trial
+            </a>
+          </div>
         </div>
       </div>
     </header>
