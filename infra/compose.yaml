@@ -78,6 +78,16 @@ services:
       - "traefik.http.routers.hub.entrypoints=websecure"
       - "traefik.http.routers.hub.tls=true"
       - "traefik.http.routers.hub.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary.rule=Host(`canary.hub.livraone.com`)"
+      - "traefik.http.routers.hub-canary.entrypoints=websecure"
+      - "traefik.http.routers.hub-canary.tls=true"
+      - "traefik.http.routers.hub-canary.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary.priority=100"
+      - "traefik.http.routers.hub-canary-header.rule=Host(`hub.livraone.com`) && Headers(`X-Canary`,`1`)"
+      - "traefik.http.routers.hub-canary-header.entrypoints=websecure"
+      - "traefik.http.routers.hub-canary-header.tls=true"
+      - "traefik.http.routers.hub-canary-header.tls.certresolver=cloudflare"
+      - "traefik.http.routers.hub-canary-header.priority=110"
     networks:
       - livraone
 

@@ -36,6 +36,12 @@ jobs:
           set -euo pipefail
           bash scripts/ci/run-gates.sh
 
+      - name: Check architecture contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/ci/check-architecture.sh
+
       - name: Upload evidence (if present)
         if: always()
         uses: actions/upload-artifact@v4
