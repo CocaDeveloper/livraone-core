@@ -9,3 +9,4 @@ else
 fi
 npm -s run lint
 npm -s run typecheck
+rm -rf node_modules .next tsconfig.tsbuildinfo
