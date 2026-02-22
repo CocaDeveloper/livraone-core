@@ -32,3 +32,69 @@ model ProjectMember {
   @@id([projectId, userId])
   @@map("project_members")
 }
+
+
+
+// ===== LIVRAONE ENTITLEMENT MINIMAL MODELS (AUTO) =====
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+model Tenant {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships   Membership[]
+  subscriptions Subscription[]
+  entitlements  Entitlement[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      String   // "owner"|"admin"|"member" (keep string; RBAC can evolve later)
+  createdAt DateTime @default(now())
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, userId])
+  @@index([userId])
+}
+
+model Subscription {
+  id         String             @id @default(cuid())
+  tenantId   String
+  status     SubscriptionStatus @default(TRIAL)
+  plan       String             @default("trial")
+  trialEndsAt DateTime?
+  currentPeriodEndsAt DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  tenant     Tenant             @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model Entitlement {
+  id        String   @id @default(cuid())
+  tenantId  String
+  key       String   // e.g. "hub.access", "invoice.access"
+  value     String   // e.g. "true"|"false" or tier string
+  source    String   @default("plan") // "plan"|"override"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+}
