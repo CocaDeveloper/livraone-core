@@ -41,3 +41,4 @@ if ! grep -qx "PASS" "$FINAL_RES"; then
   echo "run-gates: FINAL_HARD_GATE failed (see $FINAL_RES and diagnostics)" >&2
   exit 1
 fi
+  bash "scripts/gates/gate_entitlement_contract.sh"
