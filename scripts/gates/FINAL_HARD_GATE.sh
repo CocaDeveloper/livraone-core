@@ -27,6 +27,9 @@ fail(){
 pass(){ echo "PASS" > "${RESULT}"; exit 0; }
 
 REPO="${REPO:-/srv/livraone/livraone-core}"
+if [ ! -d "${REPO}" ]; then
+  REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
 [ -d "${REPO}" ] || fail "repo missing at ${REPO}"
 cd "${REPO}"
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "not a git repo"
