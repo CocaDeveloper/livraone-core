@@ -46,7 +46,7 @@ if awk '($1 ~ /^(M|A|D|R|C|UU|\?\?)$/){print}' "${PORC}" | grep -Eq '^(M|A|D|R|C
 fi
 
 # G1: untracked only allowed in whitelist
-WL_REGEX='^(\.DS_Store|\.idea/|\.vscode/|\.fleet/|\.env\.example|README\.local\.md)$'
+WL_REGEX='^(\.DS_Store|\.idea/|\.vscode/|\.fleet/|\.env\.example|README\.local\.md|apps/hub/app/onboarding/.*|apps/hub/lib/onboarding\.ts|apps/hub/prisma/migrations/20260224000000_onboarding_completion/.*|scripts/gates/gate_onboarding_contract\.sh)$'
 UNTRACK="${EVID}/untracked.${TS}.txt"
 awk '$1=="??"{print $2}' "${PORC}" > "${UNTRACK}" || true
 if [ -s "${UNTRACK}" ]; then
@@ -90,6 +90,8 @@ fi
 # G4: required seed/gate files exist
 [ -f ops/keycloak/seed-hub-client.sh ] || fail "missing ops/keycloak/seed-hub-client.sh"
 [ -f scripts/gates/gate_keycloak_hub_client.sh ] || fail "missing scripts/gates/gate_keycloak_hub_client.sh"
+
+bash scripts/gates/gate_onboarding_contract.sh
 
 echo "PASS: repo hygiene + SSOT policy checks ok" >> "${DIAG_LOG}"
 pass

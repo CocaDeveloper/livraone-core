@@ -27,6 +27,7 @@ cd "$ROOT_DIR"
 bash scripts/preflight-phase4.sh
 bash scripts/gates/gate_required_auth_env.sh
 bash scripts/gates/gate_required_checks_contract.sh
+bash scripts/gates/gate_onboarding_contract.sh
 bash scripts/gate-traefik.sh
 bash scripts/gate-tls.sh
 bash scripts/gates/marketing_lint.sh
