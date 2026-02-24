@@ -87,8 +87,8 @@ if [ -s "${POLICY_HITS}" ]; then
 fi
 
 # G4: required seed/gate files exist
-[ -f ops/keycloak/seed-hub-client.sh ] | fail "missing ops/keycloak/seed-hub-client.sh"
-[ -f scripts/gates/gate_keycloak_hub_client.sh ] | fail "missing scripts/gates/gate_keycloak_hub_client.sh"
+[ -f ops/keycloak/seed-hub-client.sh ] || fail "missing ops/keycloak/seed-hub-client.sh"
+[ -f scripts/gates/gate_keycloak_hub_client.sh ] || fail "missing scripts/gates/gate_keycloak_hub_client.sh"
 
 echo "PASS: repo hygiene + SSOT policy checks ok" >> "${DIAG_LOG}"
 pass
