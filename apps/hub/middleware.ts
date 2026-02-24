@@ -9,12 +9,20 @@ const PUBLIC_PATHS = [
   "/post-auth",
   "/logout",
   "/favicon.ico",
-  "/_next"
+  "/_next",
+  "/onboarding"
 ];
+
+const ONBOARDING_PATH = "/onboarding";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/") || pathname.startsWith(path));
+  const isPublic = PUBLIC_PATHS.some(
+    (path) =>
+      pathname === path ||
+      pathname.startsWith(path + "/") ||
+      pathname.startsWith(path)
+  );
   if (isPublic) {
     return NextResponse.next();
   }
@@ -25,6 +33,17 @@ export async function middleware(req: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  const isOnboardingRoute =
+    pathname === ONBOARDING_PATH || pathname.startsWith(ONBOARDING_PATH + "/");
+
+  const onboardingComplete = token?.onboardingComplete ?? false;
+
+  if (!onboardingComplete && !isOnboardingRoute) {
+    const onboardingUrl = req.nextUrl.clone();
+    onboardingUrl.pathname = ONBOARDING_PATH;
+    return NextResponse.redirect(onboardingUrl);
   }
 
   return NextResponse.next();
