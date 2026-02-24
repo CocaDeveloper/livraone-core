@@ -30,8 +30,7 @@ REPO="${REPO:-/srv/livraone/livraone-core}"
 if [ ! -d "${REPO}" ]; then
   REPO="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 fi
-[ -d "${REPO}" ] || fail "repo missing at ${REPO}"
-cd "${REPO}"
+[ -d "${REPO}" ] && cd "${REPO}" || fail "repo missing at ${REPO}"
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "not a git repo"
 
 echo "== FINAL HARD GATE =="
@@ -88,8 +87,8 @@ if [ -s "${POLICY_HITS}" ]; then
 fi
 
 # G4: required seed/gate files exist
-[ -f ops/keycloak/seed-hub-client.sh ] || fail "missing ops/keycloak/seed-hub-client.sh"
-[ -f scripts/gates/gate_keycloak_hub_client.sh ] || fail "missing scripts/gates/gate_keycloak_hub_client.sh"
+[ -f ops/keycloak/seed-hub-client.sh ] | fail "missing ops/keycloak/seed-hub-client.sh"
+[ -f scripts/gates/gate_keycloak_hub_client.sh ] | fail "missing scripts/gates/gate_keycloak_hub_client.sh"
 
 echo "PASS: repo hygiene + SSOT policy checks ok" >> "${DIAG_LOG}"
 pass
