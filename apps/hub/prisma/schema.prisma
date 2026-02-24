@@ -33,3 +33,16 @@ model ProjectMember {
   @@id([projectId, userId])
   @@map("project_members")
 }
+
+model OnboardingCompletion {
+  id        String   @id @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  status    String   @default("pending") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("onboarding_completions")
+  @@index([projectId])
+}
