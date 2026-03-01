@@ -12,6 +12,7 @@ function stableId(prefix: string, seed: string): string {
  */
 const AUDIT_LOG: AuditEvent[] = [];
 
+// DEPRECATED STUB
 export function appendAudit(event: Omit<AuditEvent, 'id' | 'createdAt'>): AuditEvent {
   const createdAt = new Date().toISOString();
   const seed = JSON.stringify({ ...event, createdAt });

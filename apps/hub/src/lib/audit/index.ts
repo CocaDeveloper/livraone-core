@@ -1,2 +1,2 @@
 export * from './types';
-export * from './store_stub';
+export * from './store_db';

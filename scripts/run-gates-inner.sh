@@ -67,6 +67,9 @@ bash scripts/gates/gate_audit_log_append_only_contract.sh
 # Phase 40 - Subscription persistence (Prisma-backed) contract
 bash scripts/gates/gate_subscription_persistence_prisma_contract.sh
 
+# Phase 41 - Audit persistence (Prisma-backed) contract
+bash scripts/gates/gate_audit_persistence_prisma_contract.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
