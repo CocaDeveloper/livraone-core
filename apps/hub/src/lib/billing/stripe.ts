@@ -1,10 +1,8 @@
-// =========================================================
 // Stripe Billing Provider (FLAG-CONTROLLED)
 // Requirements:
 //  - MUST NOT import Stripe at top-level.
 //  - MUST NOT require Stripe secrets unless STRIPE_ENABLED=1.
 //  - Uses lazy import to avoid unsafe initialization.
-// =========================================================
 
 export type StripeConfig = {
   enabled: boolean;
