@@ -107,6 +107,8 @@ bash scripts/gates/gate_rate_limit_contract.sh "apps/hub/src/lib/security/rate-l
 # Phase 51 — Release tag + changelog snapshot contract
 ./scripts/gates/gate_release_tag_and_changelog_snapshot.sh
 
+bash scripts/gates/gate_auth_entrypoint_contract.sh
+
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
