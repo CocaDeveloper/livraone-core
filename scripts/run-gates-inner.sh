@@ -76,9 +76,11 @@ bash scripts/gates/gate_seat_enforcement_contract.sh
 # Phase 43 - Billing activation guardrail
 bash scripts/gates/gate_billing_activation_guardrail.sh
 
-# FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
+# Phase 44 - Mandatory audit enforcement gate
 bash scripts/gates/gate_mandatory_audit_enforcement.sh
-FINAL_HARD_GATE.sh
+
+# FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
+bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
   echo "run-gates: FINAL_HARD_GATE missing result.txt at $FINAL_RES" >&2
