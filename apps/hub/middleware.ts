@@ -1,4 +1,4 @@
-import { enforceSubscription } from './src/lib/subscription/middleware_enforce';
+import { enforceSubscription } from "./src/lib/subscription/middleware_enforce";
 import { applySecurityHeaders } from "./src/lib/security/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -14,11 +14,18 @@ const PUBLIC_PATHS = [
   "/_next"
 ];
 
+function rid() {
+  return "rid_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
 export async function middleware(req: NextRequest) {
+  const requestId = req.headers.get("x-request-id") ?? rid();
+
   const apply = (res: NextResponse) => {
     try {
       applySecurityHeaders((k, v) => res.headers.set(k, v));
     } catch (_e) {}
+    res.headers.set("x-request-id", requestId);
     return res;
   };
 
