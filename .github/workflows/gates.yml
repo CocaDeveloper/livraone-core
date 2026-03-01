@@ -28,6 +28,8 @@ jobs:
       LIVRAONE_SKIP_DOCKER: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
 
       - name: CI secrets loader (export whitelist)
         shell: bash
