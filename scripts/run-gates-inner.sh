@@ -91,6 +91,9 @@ bash scripts/gates/gate_stripe_activation_flag_contract.sh "apps/hub/src/lib/bil
 # Phase 48 - Feature-level billing enforcement
 bash scripts/gates/gate_billing_feature_enforcement_contract.sh "apps/hub/src/lib/billing/feature-enforcement.ts" "apps/hub/src/lib/features/guard.ts"
 
+# Phase 49 - Tenant-scoped audit query API
+bash scripts/gates/gate_tenant_audit_query_api_contract.sh "apps/hub/src/app/api/audit/route.ts"
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
