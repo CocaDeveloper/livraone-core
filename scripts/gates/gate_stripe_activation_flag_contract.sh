@@ -6,22 +6,34 @@ pass() { echo "PASS"; }
 
 STRIPE_FILE="${1:-apps/hub/src/lib/billing/stripe.ts}"
 
+has_rg() { command -v rg >/dev/null 2>&1; }
+
+match() {
+  local pattern="$1"
+  local file="$2"
+  if has_rg; then
+    rg -n "$pattern" "$file" >/dev/null
+  else
+    grep -nE "$pattern" "$file" >/dev/null
+  fi
+}
+
 # 1) Stripe provider file must exist
 test -f "$STRIPE_FILE" || fail "missing stripe provider file: $STRIPE_FILE"
 
 # 2) Must use lazy import("stripe")
-rg -n 'import\("stripe"\)|await\s+import\("stripe"\)' "$STRIPE_FILE" >/dev/null || fail "stripe provider must use lazy import(\"stripe\")"
+match 'import\("stripe"\)|await[[:space:]]+import\("stripe"\)' "$STRIPE_FILE" || fail "stripe provider must use lazy import(\"stripe\")"
 
 # 3) Must NOT have top-level static import from 'stripe'
-if rg -n '^\s*import\s+.*from\s+["'\'']stripe["'\'']' "$STRIPE_FILE" >/dev/null; then
+if match '^[[:space:]]*import[[:space:]]+.*from[[:space:]]+["'"'"']stripe["'"'"']' "$STRIPE_FILE"; then
   fail "static import from stripe is forbidden (unsafe import)"
 fi
 
 # 4) Must NOT require secrets when disabled (expect STRIPE_ENABLED gating exists)
-rg -n 'STRIPE_ENABLED' "$STRIPE_FILE" >/dev/null || fail "expected STRIPE_ENABLED gating in provider"
+match 'STRIPE_ENABLED' "$STRIPE_FILE" || fail "expected STRIPE_ENABLED gating in provider"
 
 # 5) Must reference expected env vars (contract)
-rg -n 'STRIPE_SECRET_KEY' "$STRIPE_FILE" >/dev/null || fail "expected STRIPE_SECRET_KEY reference"
-rg -n 'STRIPE_WEBHOOK_SECRET' "$STRIPE_FILE" >/dev/null || fail "expected STRIPE_WEBHOOK_SECRET reference"
+match 'STRIPE_SECRET_KEY' "$STRIPE_FILE" || fail "expected STRIPE_SECRET_KEY reference"
+match 'STRIPE_WEBHOOK_SECRET' "$STRIPE_FILE" || fail "expected STRIPE_WEBHOOK_SECRET reference"
 
 pass
