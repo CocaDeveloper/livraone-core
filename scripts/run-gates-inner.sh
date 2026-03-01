@@ -31,6 +31,9 @@ bash scripts/gate-traefik.sh
 bash scripts/gate-tls.sh
 bash scripts/gates/marketing_lint.sh
 
+# Phase 29 - Attribution export contract
+bash scripts/gates/gate_attribution_export_contract.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
