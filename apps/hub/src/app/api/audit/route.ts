@@ -4,6 +4,7 @@
 // ---------------------------------------------------------
 
 import { NextResponse } from "next/server";
+import { getRateLimitConfigFromEnv, rateLimitAllowOrThrow } from "@/lib/security/rate-limit";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 import { hasPermission } from "@/lib/rbac";
@@ -30,6 +31,18 @@ function rolesFromToken(token: any): string[] {
 }
 
 export async function GET(req: Request) {
+  // --- Phase 50: rate limit (flag-controlled) ---
+  try {
+    const cfg = getRateLimitConfigFromEnv(process.env);
+    // best-effort key: ip (from headers) + path
+    const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
+    const key = `audit:${ip}`;
+    rateLimitAllowOrThrow(key, cfg);
+  } catch (e: any) {
+    if (String(e?.message ?? "") === "rate_limited") {
+      return new Response("Too Many Requests", { status: 429 });
+    }
+  }
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
