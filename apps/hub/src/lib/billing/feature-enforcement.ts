@@ -1,8 +1,8 @@
-// =========================================================
+// ---------------------------------------------------------
 // Phase 48 — Feature-level billing enforcement integration
 // Default behavior: NO-OP unless BILLING_ENFORCEMENT_ENABLED=1
 // Never requires Stripe secrets. This is enforcement glue only.
-// =========================================================
+// ---------------------------------------------------------
 
 function envBool(v: string | undefined): boolean {
   if (!v) return false;
