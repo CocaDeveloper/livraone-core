@@ -14,9 +14,19 @@ grep -q "BILLING_PROVIDER_ENABLED" apps/hub/src/lib/billing/feature_flag.ts || f
 # Ensure provider abstraction exists
 test -f apps/hub/src/lib/billing/provider.ts || fail "provider missing"
 
-# Block live SDK imports
-if grep -R --line-number -E "stripe|paypal|braintree|square" apps/hub/src/lib/billing >/dev/null 2>&1; then
-  fail "Live billing SDK detected"
+# Block live SDK imports (allow phase47 stripe scaffold file only)
+if command -v rg >/dev/null 2>&1; then
+  if rg -n --glob '!apps/hub/src/lib/billing/stripe.ts' \
+    -E "from ['\"]stripe['\"]|require\\(['\"]stripe['\"]\\)|from ['\"]@stripe/|paypal|braintree|square" \
+    apps/hub/src/lib/billing >/dev/null 2>&1; then
+    fail "Live billing SDK detected"
+  fi
+else
+  if grep -R --line-number --exclude='stripe.ts' \
+    -E "from ['\"]stripe['\"]|require\\(['\"]stripe['\"]\\)|from ['\"]@stripe/|paypal|braintree|square" \
+    apps/hub/src/lib/billing >/dev/null 2>&1; then
+    fail "Live billing SDK detected"
+  fi
 fi
 
 # Block direct fetch calls to payment endpoints
