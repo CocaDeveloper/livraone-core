@@ -52,6 +52,9 @@ bash scripts/gates/gate_rbac_contract.sh
 # Phase 35 - Billing stub contract
 bash scripts/gates/gate_billing_stub_contract.sh
 
+# Phase 36 - Notifications dispatcher stub contract
+bash scripts/gates/gate_notifications_dispatcher_stub_contract.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
