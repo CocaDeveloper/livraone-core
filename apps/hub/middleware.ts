@@ -28,7 +28,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  const enforced = enforceSubscription(req);
+  const enforced = await enforceSubscription(req);
   if (enforced) return enforced;
 
   return NextResponse.next();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrInitSubscription, assertAccess } from './index';
+import { evaluateTrial } from './trial_engine';
 import { parseTenantFromHost, requireTenantId } from '../tenant';
 
 /**
@@ -31,7 +32,7 @@ export function isPublicPath(pathname: string): boolean {
   return false;
 }
 
-export function enforceSubscription(req: NextRequest): NextResponse | null {
+export async function enforceSubscription(req: NextRequest): Promise<NextResponse | null> {
   const { pathname } = req.nextUrl;
 
   if (isPublicPath(pathname)) return null;
@@ -41,7 +42,8 @@ export function enforceSubscription(req: NextRequest): NextResponse | null {
   if (!tenantParsed) return null;
   const tenantId = requireTenantId(tenantParsed);
 
-  const sub = getOrInitSubscription(tenantId);
+  await evaluateTrial(tenantId);
+  const sub = await getOrInitSubscription(tenantId);
 
   try {
     assertAccess(sub);
