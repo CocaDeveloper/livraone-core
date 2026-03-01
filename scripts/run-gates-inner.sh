@@ -111,6 +111,8 @@ bash scripts/gates/gate_auth_entrypoint_contract.sh
 
 bash scripts/gates/gate_ui_ssot_contract.sh
 
+bash scripts/gates/gate_auth_ui_alignment_contract.sh
+
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
