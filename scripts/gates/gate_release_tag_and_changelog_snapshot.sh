@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+: "${RELEASE_HEAD:=HEAD}"
+
 fail(){ echo "FAIL: $*"; exit 1; }
 pass(){ echo "PASS"; }
 

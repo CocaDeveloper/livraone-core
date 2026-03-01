@@ -5,6 +5,10 @@ if [ "${CI_GATES_RUNNER:-0}" = "1" ]; then
     export RELEASE_TAG="v0.51.0"
   fi
   if [ -z "${RELEASE_HEAD:-}" ]; then
-    export RELEASE_HEAD="HEAD"
+    if git rev-parse -q --verify HEAD^2 >/dev/null 2>&1; then
+      export RELEASE_HEAD="HEAD^2"
+    else
+      export RELEASE_HEAD="HEAD"
+    fi
   fi
 fi
