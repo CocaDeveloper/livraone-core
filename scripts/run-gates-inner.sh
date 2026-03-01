@@ -34,6 +34,12 @@ bash scripts/gates/marketing_lint.sh
 # Phase 29 - Attribution export contract
 bash scripts/gates/gate_attribution_export_contract.sh
 
+# Phase 30 - Providers stub contract
+bash scripts/gates/gate_providers_stub_contract.sh
+
+# Phase 31 - Roadmap revised present
+bash scripts/gates/gate_roadmap_revised_present.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"

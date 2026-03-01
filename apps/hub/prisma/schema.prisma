@@ -33,3 +33,24 @@ model ProjectMember {
   @@id([projectId, userId])
   @@map("project_members")
 }
+
+model ProviderOutbox {
+  id          String   @id @default(cuid()) @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  kind        String   @db.Text
+  externalId  String   @map("external_id") @db.Text
+  to          String   @db.Text
+  payloadJson String   @map("payload_json") @db.Text
+
+  @@index([kind, createdAt])
+  @@map("provider_outbox")
+}
+
+model StubEntitlement {
+  tenantId  String   @id @map("tenant_id") @db.Text
+  plan      String   @db.Text
+  active    Boolean  @default(false)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("stub_entitlements")
+}

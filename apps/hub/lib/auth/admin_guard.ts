@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth"; // adjust if your repo uses a different path
+import { authOptions } from "../auth";
 
 export async function requireAdminOrMasterEmail() {
   const session = await getServerSession(authOptions as any);
