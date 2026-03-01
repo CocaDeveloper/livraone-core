@@ -117,6 +117,8 @@ bash scripts/gates/gate_ui_shell_adoption_contract.sh
 
 bash scripts/gates/gate_hub_login_autostart_no_cta_contract.sh
 
+bash scripts/gates/gate_theme_light_default_dark_optional_contract.sh
+
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
