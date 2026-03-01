@@ -33,3 +33,21 @@ model ProjectMember {
   @@id([projectId, userId])
   @@map("project_members")
 }
+
+model ProviderOutbox {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  kind        String
+  externalId  String
+  to          String
+  payloadJson String
+
+  @@index([kind, createdAt])
+}
+
+model StubEntitlement {
+  tenantId String  @id
+  plan     String
+  active   Boolean @default(false)
+  updatedAt DateTime @updatedAt
+}

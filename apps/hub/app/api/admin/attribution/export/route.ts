@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireAdminOrMasterEmail } from "@/lib/auth/admin_guard";
+import { requireAdminOrMasterEmail } from "../../../../../lib/auth/admin_guard";
 import { prisma } from "../../../../../lib/prisma";
 
 function csvEscape(v: unknown): string {
