@@ -61,6 +61,9 @@ bash scripts/gates/gate_subscription_entitlements_contract.sh
 # Phase 38 - Subscription middleware enforcement contract
 bash scripts/gates/gate_subscription_middleware_enforcement_contract.sh
 
+# Phase 39 - Audit log append-only contract
+bash scripts/gates/gate_audit_log_append_only_contract.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
