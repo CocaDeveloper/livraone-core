@@ -1,4 +1,5 @@
 import type { Subscription, PlanId, SubscriptionStatus } from './types';
+import { appendAudit } from '../audit';
 
 /**
  * Stub store (in-memory). Deterministic default for tenants without record.
@@ -30,6 +31,7 @@ export function setSubscription(tenantId: string, planId: PlanId, status: Subscr
   const cur = getOrInitSubscription(tenantId);
   const updated: Subscription = { ...cur, planId, status, updatedAt: nowIso() };
   STORE.set(tenantId, updated);
+  appendAudit({ tenantId, type: 'subscription.updated', payload: { planId, status } });
   return updated;
 }
 
