@@ -1,0 +1,25 @@
+:root{
+  /* Base */
+  --bg: 222 47% 7%;
+  --fg: 210 20% 98%;
+
+  /* Surfaces */
+  --card: 222 35% 10%;
+  --card-fg: 210 20% 98%;
+  --muted: 222 22% 14%;
+  --muted-fg: 215 16% 70%;
+
+  /* Brand */
+  --primary: 221 83% 53%;
+  --primary-fg: 210 40% 98%;
+
+  /* Lines */
+  --border: 222 18% 20%;
+  --ring: 221 83% 53%;
+}
+
+html,body{ height:100%; }
+body{
+  background: hsl(var(--bg));
+  color: hsl(var(--fg));
+}
