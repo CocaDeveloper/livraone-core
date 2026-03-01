@@ -4,6 +4,9 @@ set -euo pipefail
 # SSOT loader (no secrets printed)
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib/ssot_env.sh"
 
+# Phase 51: release env defaults (deterministic CI)
+[ -f ./scripts/release/release-env.sh ] && source ./scripts/release/release-env.sh
+
 # Fail-fast: prevent docker compose from defaulting critical auth vars to blank
 REQUIRED_AUTH_VARS=(
   NEXTAUTH_SECRET
@@ -101,6 +104,9 @@ bash scripts/gates/gate_security_headers_contract.sh "apps/hub/middleware.ts" "a
 bash scripts/gates/gate_rate_limit_contract.sh "apps/hub/src/lib/security/rate-limit.ts" "apps/hub"
 
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
+# Phase 51 — Release tag + changelog snapshot contract
+./scripts/gates/gate_release_tag_and_changelog_snapshot.sh
+
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
