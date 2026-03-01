@@ -31,14 +31,23 @@ else
   fi
 fi
 
-# SSOT check: if hub.env declares BILLING_PROVIDER, it must be stub
-# Do NOT print secrets. Only evaluate the key/value of BILLING_PROVIDER if present.
+# SSOT check: if hub.env declares BILLING_PROVIDER, it must be stub.
+# In CI, /etc/livraone/hub.env may be absent; fall back to env var if provided.
 SSOT="/etc/livraone/hub.env"
-test -f "$SSOT" || fail "missing SSOT hub.env"
-if grep -qE '^BILLING_PROVIDER=' "$SSOT"; then
-  v="$(grep -E '^BILLING_PROVIDER=' "$SSOT" | tail -n1 | cut -d= -f2- | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
-  if [ "$v" != "stub" ]; then
-    fail "BILLING_PROVIDER must be stub in SSOT"
+if [ -f "$SSOT" ]; then
+  if grep -qE '^BILLING_PROVIDER=' "$SSOT"; then
+    v="$(grep -E '^BILLING_PROVIDER=' "$SSOT" | tail -n1 | cut -d= -f2- | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
+    if [ "$v" != "stub" ]; then
+      fail "BILLING_PROVIDER must be stub in SSOT"
+    fi
+  fi
+else
+  # No SSOT file (e.g., CI). If env is set, enforce stub.
+  if [ -n "${BILLING_PROVIDER:-}" ]; then
+    v="$(echo "${BILLING_PROVIDER}" | tr '[:upper:]' '[:lower:]')"
+    if [ "$v" != "stub" ]; then
+      fail "BILLING_PROVIDER must be stub in env when SSOT missing"
+    fi
   fi
 fi
 
