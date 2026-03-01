@@ -94,6 +94,12 @@ bash scripts/gates/gate_billing_feature_enforcement_contract.sh "apps/hub/src/li
 # Phase 49 - Tenant-scoped audit query API
 bash scripts/gates/gate_tenant_audit_query_api_contract.sh "apps/hub/src/app/api/audit/route.ts"
 
+# Phase 50 - Security headers baseline
+bash scripts/gates/gate_security_headers_contract.sh "apps/hub/middleware.ts" "apps/hub/src/lib/security/headers.ts"
+
+# Phase 50 - Rate limit baseline
+bash scripts/gates/gate_rate_limit_contract.sh "apps/hub/src/lib/security/rate-limit.ts" "apps/hub"
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
