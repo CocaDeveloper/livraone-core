@@ -40,6 +40,9 @@ bash scripts/gates/gate_providers_stub_contract.sh
 # Phase 31 - Roadmap revised present
 bash scripts/gates/gate_roadmap_revised_present.sh
 
+# Phase 32 - Admin/Client access contract
+bash scripts/gates/gate_admin_client_access_contract.sh
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
