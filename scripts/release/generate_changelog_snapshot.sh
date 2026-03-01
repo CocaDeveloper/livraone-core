@@ -10,12 +10,15 @@ test -n "$RELEASE_TAG" || fail "RELEASE_TAG is required"
 
 HEAD_REF="${RELEASE_HEAD:-HEAD}"
 
-# Determine base ref
+# Determine base ref + display label
 if [ -z "$PREV_TAG" ]; then
   # Deterministic default: base equals HEAD_REF (no history required).
+  # Display label stays stable to avoid CI merge-commit drift.
   BASE="${HEAD_REF}"
+  BASE_LABEL="HEAD"
 else
   BASE="$PREV_TAG"
+  BASE_LABEL="$PREV_TAG"
 fi
 
 HEAD_SHA="$(git rev-parse "${HEAD_REF}")"
@@ -31,7 +34,7 @@ mkdir -p docs/releases
   echo
   echo "- Date (UTC): ${DATE_UTC}"
   echo "- Head SHA: ${HEAD_SHA}"
-  echo "- Base: ${BASE}"
+  echo "- Base: ${BASE_LABEL}"
   echo
   echo "## Merged changes"
   echo
