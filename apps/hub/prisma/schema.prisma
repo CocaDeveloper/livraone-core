@@ -54,3 +54,15 @@ model StubEntitlement {
 
   @@map("stub_entitlements")
 }
+
+model Subscription {
+  id                String   @id @default(cuid())
+  tenantId          String   @unique
+  planId            String
+  status            String
+  currentPeriodEnd  DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
