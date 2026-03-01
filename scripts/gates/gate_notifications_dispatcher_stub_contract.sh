@@ -42,7 +42,7 @@ check_stub_var() {
   if [ -f "$SSOT" ] && grep -qE "^${key}=" "$SSOT"; then
     v="$(grep -E "^${key}=" "$SSOT" | tail -n1 | cut -d= -f2- | tr -d '\r' | tr '[:upper:]' '[:lower:]')"
   else
-    v="$(printenv "$key" 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+    v="$(printf '%s' "${!key-}" | tr '[:upper:]' '[:lower:]')"
   fi
   if [ -n "$v" ] && [ "$v" != "stub" ]; then
     fail "${key} must be stub when set"
