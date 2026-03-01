@@ -79,3 +79,14 @@ model AuditLog {
   @@index([type])
   @@index([createdAt])
 }
+
+model Membership {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@unique([tenantId, userId])
+}
