@@ -83,7 +83,8 @@ bash scripts/gates/gate_mandatory_audit_enforcement.sh
 bash scripts/gates/gate_trial_expiration_engine.sh
 
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
-bash scripts/gates/FINAL_HARD_GATE.sh
+bash scripts/gates/gate_feature_gating_contract.sh
+FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
   echo "run-gates: FINAL_HARD_GATE missing result.txt at $FINAL_RES" >&2
