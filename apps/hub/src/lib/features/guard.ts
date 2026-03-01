@@ -4,6 +4,7 @@
  * Deterministic: no network, no provider calls.
  */
 import type { FeatureKey } from './types';
+import { enforceBillingForPaidFeatureAccess } from '@/lib/billing/feature-enforcement';
 import { getOrInitSubscription, entitlementsFor } from '@/lib/subscription';
 
 export class FeatureGateError extends Error {
@@ -19,6 +20,8 @@ export class FeatureGateError extends Error {
 export async function assertFeatureForTenant(tenantId: string, feature: FeatureKey): Promise<void> {
   const sub = await getOrInitSubscription(tenantId);
   const ent = entitlementsFor(sub.planId, sub.status);
+  const bill = enforceBillingForPaidFeatureAccess({ plan: sub.planId, subscription: sub });
+  if (!bill.ok) throw new Error('BILLING_REQUIRED');
   const enabled = !!ent.features?.[feature];
   if (!enabled) throw new FeatureGateError(feature);
 }

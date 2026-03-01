@@ -88,6 +88,9 @@ bash scripts/gates/gate_feature_gating_contract.sh
 # Phase 47 - Stripe activation (flag-controlled)
 bash scripts/gates/gate_stripe_activation_flag_contract.sh "apps/hub/src/lib/billing/stripe.ts"
 
+# Phase 48 - Feature-level billing enforcement
+bash scripts/gates/gate_billing_feature_enforcement_contract.sh "apps/hub/src/lib/billing/feature-enforcement.ts" "apps/hub/src/lib/features/guard.ts"
+
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
