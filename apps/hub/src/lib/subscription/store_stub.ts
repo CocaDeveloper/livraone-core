@@ -11,6 +11,7 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+// DEPRECATED STUB
 export function getOrInitSubscription(tenantId: string): Subscription {
   const existing = STORE.get(tenantId);
   if (existing) return existing;
