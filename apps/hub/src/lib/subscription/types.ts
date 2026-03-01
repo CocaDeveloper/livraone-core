@@ -7,7 +7,8 @@ export type SubscriptionStatus =
   | 'trialing'
   | 'active'
   | 'past_due'
-  | 'canceled';
+  | 'canceled'
+  | 'expired';
 
 export type PlanId = 'free' | 'starter' | 'pro' | 'enterprise';
 
