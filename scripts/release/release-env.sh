@@ -5,10 +5,6 @@ if [ "${CI_GATES_RUNNER:-0}" = "1" ]; then
     export RELEASE_TAG="v0.51.0"
   fi
   if [ -z "${RELEASE_HEAD:-}" ]; then
-    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-      export RELEASE_HEAD="HEAD^2"
-    else
-      export RELEASE_HEAD="HEAD"
-    fi
+    export RELEASE_HEAD="HEAD"
   fi
 fi
