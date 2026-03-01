@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { signIn } from "next-auth/react";
 import { AuthShell, Button } from "@livraone/ui";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 const FALLBACK_MS = 2500;
 
@@ -24,6 +25,7 @@ export default function Login() {
 
   return (
     <AuthShell>
+      <div className="mb-4 flex justify-end"><ThemeToggle /></div>
       <h1 className="text-xl font-semibold">Signing you in…</h1>
       <p className="mt-2 text-sm text-mutedfg">Redirecting to LivraOne SSO.</p>
 
