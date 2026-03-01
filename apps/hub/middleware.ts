@@ -1,3 +1,4 @@
+import { enforceSubscription } from './src/lib/subscription/middleware_enforce';
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
@@ -26,6 +27,9 @@ export async function middleware(req: NextRequest) {
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);
   }
+
+  const enforced = enforceSubscription(req);
+  if (enforced) return enforced;
 
   return NextResponse.next();
 }
