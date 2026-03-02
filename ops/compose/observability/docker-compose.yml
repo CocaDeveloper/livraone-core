@@ -11,7 +11,7 @@ volumes:
 
 services:
   uptime-kuma:
-    image: louislam/uptime-kuma:1
+    image: louislam/uptime-kuma@sha256:3d632903e6af34139a37f18055c4f1bfd9b7205ae1138f1e5e8940ddc1d176f9
     container_name: uptime-kuma
     restart: unless-stopped
     volumes:
@@ -28,7 +28,7 @@ services:
       - "traefik.http.routers.uptime-kuma.tls.certresolver=cloudflare"
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus@sha256:4a61322ac1103a0e3aea2a61ef1718422a48fa046441f299d71e660a3bc71ae9
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -38,7 +38,7 @@ services:
       - obs
 
   node_exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter@sha256:3ac34ce007accad95afed72149e0d2b927b7e42fd1c866149b945b84737c62c3
     container_name: node-exporter
     restart: unless-stopped
     pid: host
@@ -50,7 +50,7 @@ services:
       - obs
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor@sha256:3de2bd5203120b866d74a9b283b2ffb8ec382fbf9dc321814700c6ea6f44ec57
     container_name: cadvisor
     restart: unless-stopped
     volumes:
@@ -62,7 +62,7 @@ services:
       - obs
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana@sha256:b0ae311af06228bcfd4a620504b653db80f5b91e94dc3dc2a5b7dab202bcde20
     container_name: grafana
     restart: unless-stopped
     environment:
