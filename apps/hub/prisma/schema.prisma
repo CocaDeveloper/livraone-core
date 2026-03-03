@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -17,7 +17,8 @@ model Project {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  members ProjectMember[]
+  members              ProjectMember[]
+  OnboardingCompletion OnboardingCompletion[]
 
   @@map("projects")
 }
@@ -43,6 +44,63 @@ model OnboardingCompletion {
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@map("onboarding_completions")
   @@index([projectId])
+  @@map("onboarding_completions")
+}
+
+model ProviderOutbox {
+  id          String   @id @default(cuid()) @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  kind        String   @db.Text
+  externalId  String   @map("external_id") @db.Text
+  to          String   @db.Text
+  payloadJson String   @map("payload_json") @db.Text
+
+  @@index([kind, createdAt])
+  @@map("provider_outbox")
+}
+
+model StubEntitlement {
+  tenantId  String   @id @map("tenant_id") @db.Text
+  plan      String   @db.Text
+  active    Boolean  @default(false)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("stub_entitlements")
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  tenantId         String    @unique
+  planId           String
+  status           String
+  currentPeriodEnd DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([tenantId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  tenantId  String
+  actorId   String?
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, userId])
+  @@index([tenantId])
 }

@@ -10,6 +10,7 @@ jobs:
   gates:
     runs-on: ubuntu-latest
     env:
+      NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
       AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
       KC_REALM: ${{ secrets.KC_REALM }}
@@ -28,6 +29,8 @@ jobs:
       LIVRAONE_SKIP_DOCKER: "1"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
 
       - name: CI secrets loader (export whitelist)
         shell: bash

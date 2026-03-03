@@ -10,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-bg text-fg">
         <HubShell>{children}</HubShell>
       </body>
     </html>

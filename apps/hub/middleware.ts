@@ -1,3 +1,5 @@
+import { enforceSubscription } from "./src/lib/subscription/middleware_enforce";
+import { applySecurityHeaders } from "./src/lib/security/headers";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
@@ -12,11 +14,25 @@ const PUBLIC_PATHS = [
   "/_next"
 ];
 
+function rid() {
+  return "rid_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+}
+
 export async function middleware(req: NextRequest) {
+  const requestId = req.headers.get("x-request-id") ?? rid();
+
+  const apply = (res: NextResponse) => {
+    try {
+      applySecurityHeaders((k, v) => res.headers.set(k, v));
+    } catch (_e) {}
+    res.headers.set("x-request-id", requestId);
+    return res;
+  };
+
   const { pathname } = req.nextUrl;
   const isPublic = PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path + "/") || pathname.startsWith(path));
   if (isPublic) {
-    return NextResponse.next();
+    return apply(NextResponse.next());
   }
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -24,10 +40,13 @@ export async function middleware(req: NextRequest) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("from", pathname);
-    return NextResponse.redirect(loginUrl);
+    return apply(NextResponse.redirect(loginUrl));
   }
 
-  return NextResponse.next();
+  const enforced = await enforceSubscription(req);
+  if (enforced) return apply(enforced as NextResponse);
+
+  return apply(NextResponse.next());
 }
 
 export const config = {
