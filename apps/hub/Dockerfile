@@ -9,6 +9,10 @@ COPY packages/tailwind-config/tailwind.preset.ts ./packages/tailwind-config/
 COPY apps/hub/prisma ./apps/hub/prisma
 WORKDIR /app/apps/hub
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+RUN mkdir -p /app/apps/hub/node_modules/@livraone \
+  && rm -rf /app/apps/hub/node_modules/@livraone/ui /app/apps/hub/node_modules/@livraone/tailwind-config \
+  && cp -R /app/packages/ui /app/apps/hub/node_modules/@livraone/ui \
+  && cp -R /app/packages/tailwind-config /app/apps/hub/node_modules/@livraone/tailwind-config
 RUN npx prisma generate --schema=prisma/schema.prisma
 
 FROM node:20-alpine AS builder
