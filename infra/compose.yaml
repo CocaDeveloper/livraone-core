@@ -72,8 +72,8 @@ services:
   hub:
     image: ${HUB_IMAGE:-livraone-hub:local}
     build:
-      context: ./apps/hub
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/hub/Dockerfile
     container_name: hub
     restart: unless-stopped
     environment:
