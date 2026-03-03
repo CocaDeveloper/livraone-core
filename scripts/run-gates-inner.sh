@@ -136,6 +136,8 @@ bash scripts/gates/gate_disable_next_telemetry_contract.sh
 
 bash scripts/gates/gate_compose_integrity_contract.sh
 
+bash scripts/gates/gate_phase_history_ledger_contract.sh
+
 bash scripts/gates/FINAL_HARD_GATE.sh
 FINAL_RES="/tmp/livraone-final-hard-gate/evidence/result.txt"
 if [[ ! -f "$FINAL_RES" ]]; then
