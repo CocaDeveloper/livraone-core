@@ -25,7 +25,7 @@ if rg -q "@livraone/ui" apps/hub; then
     in_block {print}
   ' "$COMPOSE")
 
-  echo "$hub_block" | grep -Eq 'context:[[:space:]]+\\.\\.(\\/)?[[:space:]]*$' || fail "hub build context must be repo root when @livraone/ui is referenced"
+  echo "$hub_block" | awk '$1=="context:" && $2==".." {found=1} END{exit !found}' || fail "hub build context must be repo root when @livraone/ui is referenced"
 fi
 
 python - <<'PY'
