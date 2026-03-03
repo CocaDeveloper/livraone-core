@@ -10,6 +10,7 @@ jobs:
   gates:
     runs-on: ubuntu-latest
     env:
+      NEXT_TELEMETRY_DISABLED: "1"
       CI: "true"
       AUTH_BASE_URL: ${{ secrets.AUTH_BASE_URL }}
       KC_REALM: ${{ secrets.KC_REALM }}
