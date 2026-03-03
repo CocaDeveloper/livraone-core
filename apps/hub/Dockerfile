@@ -1,8 +1,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
+COPY prisma ./prisma
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema.prisma
 
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -10,7 +11,7 @@ COPY package*.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build && npm prune --omit=dev
-RUN npx prisma generate
+RUN npx prisma generate --schema=prisma/schema.prisma
 
 FROM node:20-alpine AS runner
 WORKDIR /app
