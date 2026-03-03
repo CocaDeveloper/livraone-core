@@ -1,0 +1,19 @@
+{
+  "roles": ["owner", "admin", "member", "viewer", "billing", "support"],
+  "permissions": [
+    "tenant:read","tenant:write",
+    "users:read","users:invite","users:remove",
+    "billing:read","billing:write",
+    "settings:read","settings:write",
+    "audit:read",
+    "content:read","content:write"
+  ],
+  "grants": {
+    "owner":   ["*"],
+    "admin":   ["tenant:read","tenant:write","users:read","users:invite","users:remove","billing:read","billing:write","settings:read","settings:write","audit:read","content:read","content:write"],
+    "member":  ["tenant:read","users:read","billing:read","settings:read","content:read","content:write"],
+    "viewer":  ["tenant:read","users:read","billing:read","settings:read","content:read"],
+    "billing": ["tenant:read","billing:read","billing:write","settings:read"],
+    "support": ["tenant:read","users:read","audit:read","content:read"]
+  }
+}
