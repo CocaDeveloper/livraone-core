@@ -20,9 +20,9 @@ if rg -q "@livraone/ui" apps/hub; then
   rg -q "^COPY[[:space:]]+packages/ui" "$DOCKERFILE" || fail "hub Dockerfile must copy packages/ui when @livraone/ui is referenced"
 
   hub_block=$(awk '
-    /^  hub:/ {in=1; next}
-    in && /^  [a-zA-Z0-9_-]+:/ {exit}
-    in {print}
+    /^  hub:/ {in_block=1; next}
+    in_block && /^  [a-zA-Z0-9_-]+:/ {exit}
+    in_block {print}
   ' "$COMPOSE")
 
   echo "$hub_block" | grep -q 'context: \.' || fail "hub build context must be repo root when @livraone/ui is referenced"
