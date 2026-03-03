@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
-binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -17,7 +17,8 @@ model Project {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  members ProjectMember[]
+  members              ProjectMember[]
+  OnboardingCompletion OnboardingCompletion[]
 
   @@map("projects")
 }
@@ -32,6 +33,19 @@ model ProjectMember {
 
   @@id([projectId, userId])
   @@map("project_members")
+}
+
+model OnboardingCompletion {
+  id        String   @id @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  status    String   @default("pending") @db.Text
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("onboarding_completions")
 }
 
 model ProviderOutbox {
@@ -56,24 +70,24 @@ model StubEntitlement {
 }
 
 model Subscription {
-  id                String   @id @default(cuid())
-  tenantId          String   @unique
-  planId            String
-  status            String
-  currentPeriodEnd  DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String    @id @default(cuid())
+  tenantId         String    @unique
+  planId           String
+  status           String
+  currentPeriodEnd DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([tenantId])
 }
 
 model AuditLog {
-  id         String   @id @default(cuid())
-  tenantId   String
-  actorId    String?
-  type       String
-  payload    Json?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  tenantId  String
+  actorId   String?
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
 
   @@index([tenantId])
   @@index([type])
@@ -87,6 +101,6 @@ model Membership {
   role      String
   createdAt DateTime @default(now())
 
-  @@index([tenantId])
   @@unique([tenantId, userId])
+  @@index([tenantId])
 }
