@@ -5,7 +5,7 @@ networks:
 
 services:
   hub-db:
-    image: postgres:16
+    image: postgres@sha256:78df81b1442dcc764c1104154da7162635e40cfffe67579c42a1c1b96dfc209c
     container_name: hub-db
     restart: unless-stopped
     environment:
@@ -20,7 +20,7 @@ services:
       - livraone
 
   traefik:
-    image: traefik:v3.0.0
+    image: traefik@sha256:7996bdae8aaa70eaacf2978b6c949de5b68c0a24ddc3e40c06344ecc88cfaea3
     container_name: traefik
     restart: unless-stopped
     environment:
@@ -55,7 +55,7 @@ services:
       - "traefik.http.routers.http-catchall.tls=false"
 
   whoami:
-    image: containous/whoami:latest
+    image: containous/whoami@sha256:7d6a3c8f91470a23ef380320609ee6e69ac68d20bc804f3a1c6065fb56cfa34e
     container_name: whoami
     restart: unless-stopped
     labels:
