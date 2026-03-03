@@ -3,7 +3,7 @@
 // Minimal integration, no redesign.
 // ---------------------------------------------------------
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getRateLimitConfigFromEnv, rateLimitAllowOrThrow } from "@/lib/security/rate-limit";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
@@ -30,7 +30,7 @@ function rolesFromToken(token: any): string[] {
   return [];
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   // --- Phase 50: rate limit (flag-controlled) ---
   try {
     const cfg = getRateLimitConfigFromEnv(process.env);
