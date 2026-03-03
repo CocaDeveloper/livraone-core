@@ -1,8 +1,8 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth";
+import { getAuthOptions } from "../auth";
 
 export async function requireAdminOrMasterEmail() {
-  const session = await getServerSession(authOptions as any);
+  const session = await getServerSession(getAuthOptions() as any);
   if (!session || !(session as any).user) {
     return new Response("Unauthorized", { status: 401 });
   }
