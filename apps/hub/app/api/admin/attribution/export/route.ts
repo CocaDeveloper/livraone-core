@@ -13,12 +13,10 @@ export async function GET(): Promise<Response> {
   const denied = await requireAdminOrMasterEmail();
   if (denied) return denied;
 
-  const rows = await prisma.user.findMany({
+  const rows = await prisma.membership.findMany({
     select: {
-      id: true,
-      email: true,
+      userId: true,
       createdAt: true,
-      marketingAttribution: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -27,10 +25,10 @@ export async function GET(): Promise<Response> {
   const body = [
     header,
     ...rows.map(r => [
-      csvEscape(r.id),
-      csvEscape(r.email),
+      csvEscape(r.userId),
+      "",
       csvEscape(r.createdAt?.toISOString?.() ?? r.createdAt),
-      csvEscape(r.marketingAttribution),
+      "",
     ].join(",")),
   ].join("\n");
 
