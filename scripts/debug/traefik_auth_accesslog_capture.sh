@@ -44,7 +44,7 @@ docker exec "$TRAEFIK_CID" sh -lc "[ -f '$ACCESS_LOG' ]" || { log "FAIL: access 
 log "Record access log size and tail (sanitized)"
 docker exec "$TRAEFIK_CID" sh -lc "stat -c '%s' '$ACCESS_LOG'" > "$EVID/accesslog_size_bytes.txt" 2>/dev/null || true
 docker exec "$TRAEFIK_CID" sh -lc "tail -n 20 '$ACCESS_LOG'" \
-  | sed -E 's/\\?[^\" ]+/\\?<redacted>/g' \
+  | sed -E 's/("RequestPath":"[^"?]*)\\?[^"]*/\\1?<redacted>/g' \
   > "$EVID/accesslog_tail_before.txt" 2>/dev/null || true
 
 RAW="$EVID/accesslog_tail_raw.txt"
@@ -72,7 +72,7 @@ else
 fi
 
 log "Sanitize captured access logs"
-sed -E 's/\\?[^\" ]+/\\?<redacted>/g' "$RAW" > "$SAN"
+sed -E 's/("RequestPath":"[^"?]*)\\?[^"]*/\\1?<redacted>/g' "$RAW" > "$SAN"
 rm -f "$RAW"
 
 log "Extract auth paths"
@@ -81,7 +81,7 @@ grep -nE "/api/auth/callback" "$SAN" > "$EVID/auth_callback_hits.txt" || true
 
 log "Extract auth paths from recent access.log tail (sanitized)"
 docker exec "$TRAEFIK_CID" sh -lc "tail -n 2000 '$ACCESS_LOG'" \
-  | sed -E 's/\\?[^\" ]+/\\?<redacted>/g' \
+  | sed -E 's/("RequestPath":"[^"?]*)\\?[^"]*/\\1?<redacted>/g' \
   | grep -nE "/api/auth/(signin|callback)" \
   > "$EVID/accesslog_auth_lines.txt" || true
 
