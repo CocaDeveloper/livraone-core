@@ -47,21 +47,22 @@ docker exec "$TRAEFIK_CID" sh -lc "tail -n 20 '$ACCESS_LOG'" \
   | sed -E 's/\\?[^\" ]+/\\?<redacted>/g' \
   > "$EVID/accesslog_tail_before.txt" 2>/dev/null || true
 
-log "Force origin traffic via Traefik (curl --resolve)"
-curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/ \
-  > "$EVID/curl_hub_root.headers.txt" || true
-curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/login \
-  > "$EVID/curl_hub_login.headers.txt" || true
-curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/api/auth/signin \
-  > "$EVID/curl_auth_signin.headers.txt" || true
-
 RAW="$EVID/accesslog_tail_raw.txt"
 SAN="$EVID/accesslog_tail_sanitized.txt"
 
 log "Capture access log tail for ${DURATION}s"
 if command -v timeout >/dev/null 2>&1; then
   timeout "${DURATION}s" docker exec "$TRAEFIK_CID" sh -lc "tail -F '$ACCESS_LOG'" \
-    > "$RAW" 2>/dev/null || true
+    > "$RAW" 2>/dev/null & TAIL_PID=$!
+  sleep 2
+  log "Force origin traffic via Traefik during capture (curl --resolve)"
+  curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/ \
+    > "$EVID/curl_hub_root.headers.txt" || true
+  curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/login \
+    > "$EVID/curl_hub_login.headers.txt" || true
+  curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/api/auth/signin \
+    > "$EVID/curl_auth_signin.headers.txt" || true
+  wait "$TAIL_PID" || true
 else
   end=$((SECONDS + DURATION))
   while [[ $SECONDS -lt $end ]]; do
@@ -78,9 +79,16 @@ log "Extract auth paths"
 grep -nE "/api/auth/signin" "$SAN" > "$EVID/auth_signin_hits.txt" || true
 grep -nE "/api/auth/callback" "$SAN" > "$EVID/auth_callback_hits.txt" || true
 
+log "Extract auth paths from recent access.log tail (sanitized)"
+docker exec "$TRAEFIK_CID" sh -lc "tail -n 2000 '$ACCESS_LOG'" \
+  | sed -E 's/\\?[^\" ]+/\\?<redacted>/g' \
+  | grep -nE "/api/auth/(signin|callback)" \
+  > "$EVID/accesslog_auth_lines.txt" || true
+
 {
   echo "auth_signin_hits: $(wc -l < "$EVID/auth_signin_hits.txt" | tr -d ' ')"
   echo "auth_callback_hits: $(wc -l < "$EVID/auth_callback_hits.txt" | tr -d ' ')"
+  echo "accesslog_auth_lines: $(wc -l < "$EVID/accesslog_auth_lines.txt" | tr -d ' ')"
 } > "$EVID/auth_hits_summary.txt"
 
 log "Manifest"
