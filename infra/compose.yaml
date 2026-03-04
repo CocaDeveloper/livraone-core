@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
     entrypoint: ["traefik"]
     command:
-      - "--accesslog"
+      - "--accesslog=true"
       - "--accesslog.format=json"
       - "--accesslog.filepath=/var/log/traefik/access.log"
       - "--accesslog.fields.defaultmode=keep"
