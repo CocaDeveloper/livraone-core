@@ -79,7 +79,8 @@ services:
     environment:
       - DATABASE_URL=postgresql://livraone:${NEXTAUTH_SECRET}@hub-db:5432/livraone?schema=public
       - NODE_ENV=production
-      - NEXTAUTH_URL=https://hub.livraone.com
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_TRUST_HOST=1
       - HUB_API_URL=https://hub.livraone.com/api
       - KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
       - HUB_AUTH_ISSUER=${HUB_AUTH_ISSUER}
