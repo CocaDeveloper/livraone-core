@@ -24,7 +24,7 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
-      - "--accesslog=true"
+      - "--accesslog"
       - "--accesslog.format=json"
       - "--accesslog.filepath=/var/log/traefik/access.log"
       - "--accesslog.fields.defaultmode=keep"
