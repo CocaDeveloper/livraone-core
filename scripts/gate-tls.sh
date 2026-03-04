@@ -8,7 +8,7 @@ compose=infra/compose.yaml
 host=hub.livraone.com
 max_wait=300
 interval=15
-allowed=(200 301 302 303 404)
+allowed=(200 301 302 303 404 307)
 
 if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
   echo "gate-tls: LIVRAONE_SKIP_DOCKER=1, skipping TLS gate"

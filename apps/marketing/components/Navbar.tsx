@@ -16,8 +16,8 @@ export default function Navbar() {
 
           <div className="flex items-center gap-3">
             <a
-              href="/login"
-              className="hidden items-center justify-center rounded-md border border-slate-900/10 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-900/20 hover:text-slate-900 md:inline-flex"
+              href="https://hub.livraone.com/login"
+              className="inline-flex items-center justify-center rounded-md border border-slate-900/10 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:border-slate-900/20 hover:text-slate-900 sm:px-4 sm:text-sm"
             >
               Login
             </a>

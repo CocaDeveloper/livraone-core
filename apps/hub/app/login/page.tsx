@@ -25,14 +25,24 @@ export default function Login() {
 
   return (
     <AuthShell>
-      <div className="mb-4 flex justify-end"><ThemeToggle /></div>
-      <h1 className="text-xl font-semibold">Signing you in…</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primaryfg text-lg font-semibold">L</span>
+          <div>
+            <div className="text-xs uppercase tracking-[0.2em] text-mutedfg">LivraOne</div>
+            <div className="text-base font-semibold text-fg">Hub Sign In</div>
+          </div>
+        </div>
+        <ThemeToggle />
+      </div>
+
+      <h1 className="text-lg font-semibold text-fg">Signing you in…</h1>
       <p className="mt-2 text-sm text-mutedfg">Redirecting to LivraOne SSO.</p>
 
       {showFallback ? (
         <div className="mt-6">
-          <Button className="w-full" variant="ghost" onClick={start}>
-            Continue
+          <Button className="w-full" onClick={start}>
+            Continue with LivraOne SSO
           </Button>
         </div>
       ) : null}
