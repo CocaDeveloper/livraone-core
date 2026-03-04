@@ -86,3 +86,10 @@
   - PR backlog evidence:
     - /srv/livraone/evidence/pr-close-legacy-20260303-205905
     - /srv/livraone/evidence/pr-backlog-after-close-20260303-210030
+
+## Phase 72
+- Status: OPEN
+- Notes:
+  - Added auth loop debug + smoke scripts (no secrets printed).
+  - Documented NEXTAUTH_URL in SSOT contract and enforced SSOT-sourced NEXTAUTH_URL.
+  - Added auth redirect contract gate and enforced NEXTAUTH_TRUST_HOST in hub compose.

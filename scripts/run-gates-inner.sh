@@ -9,6 +9,7 @@ set -euo pipefail
 
 # Fail-fast: prevent docker compose from defaulting critical auth vars to blank
 REQUIRED_AUTH_VARS=(
+  NEXTAUTH_URL
   NEXTAUTH_SECRET
   KEYCLOAK_ISSUER
   HUB_AUTH_ISSUER
@@ -107,6 +108,8 @@ bash scripts/gates/gate_rate_limit_contract.sh "apps/hub/src/lib/security/rate-l
 # FINAL HARD GATE: must explicitly check result file (gate exits 0 even on FAIL)
 # Phase 51 — Release tag + changelog snapshot contract
 ./scripts/gates/gate_release_tag_and_changelog_snapshot.sh
+
+bash scripts/gates/gate_auth_redirect_contract.sh
 
 bash scripts/gates/gate_auth_entrypoint_contract.sh
 
