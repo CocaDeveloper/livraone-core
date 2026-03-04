@@ -10,11 +10,21 @@ const FALLBACK_MS = 2500;
 export default function Login() {
   const [showFallback, setShowFallback] = useState(false);
 
+  // Phase 72.8: iOS/Safari deterministic auth bootstrap.
+  // Ensure NextAuth CSRF cookie is set before calling signIn.
   const start = useMemo(() => {
-    return () => signIn("keycloak", { callbackUrl: "/post-auth" });
+    return async () => {
+      try {
+        // credentials: include ensures the __Secure-next-auth.csrf-token cookie is persisted.
+        await fetch("/api/auth/csrf", { method: "GET", credentials: "include", cache: "no-store" });
+      } catch {
+        // ignore; signIn will still attempt, but iOS reliability improves when CSRF cookie is present.
+      }
+      return signIn("keycloak", { callbackUrl: "/post-auth" });
+    };
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     // Start immediately
     start();
 
