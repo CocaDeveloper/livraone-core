@@ -4,6 +4,11 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
+# Non-secret, required for NextAuth URL construction.
+if [[ -z "${NEXTAUTH_URL:-}" ]]; then
+  export NEXTAUTH_URL="https://hub.livraone.com"
+fi
+
 REQ=(
   AUTH_BASE_URL
   KC_REALM
