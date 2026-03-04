@@ -6,6 +6,7 @@ set -euo pipefail
 
 # Fail-fast: prevent docker compose from defaulting critical auth vars to blank
 REQUIRED_AUTH_VARS=(
+  NEXTAUTH_URL
   NEXTAUTH_SECRET
   KEYCLOAK_ISSUER
   HUB_AUTH_ISSUER

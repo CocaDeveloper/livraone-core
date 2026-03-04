@@ -13,6 +13,7 @@ Deploy workflows source `/etc/livraone/hub.env` and export variables into the en
 ## Required Auth Env Vars (SSOT)
 The SSOT file `/etc/livraone/hub.env` MUST define the following keys (non-empty). Values must never be committed.
 
+- NEXTAUTH_URL
 - NEXTAUTH_SECRET
 - KEYCLOAK_ISSUER
 - HUB_AUTH_ISSUER

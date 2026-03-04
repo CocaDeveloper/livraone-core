@@ -5,6 +5,7 @@ set -euo pipefail
 # Never print values.
 
 REQ=(
+  NEXTAUTH_URL
   NEXTAUTH_SECRET
   KEYCLOAK_ISSUER
   HUB_AUTH_ISSUER
