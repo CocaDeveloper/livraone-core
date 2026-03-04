@@ -16,6 +16,18 @@ need grep
 DURATION="${1:-300}"
 COMPOSE="/srv/livraone/livraone-core/infra/compose.yaml"
 ACCESS_LOG="/var/log/traefik/access.log"
+SSOT="/etc/livraone/hub.env"
+
+if [[ -f "$SSOT" ]]; then
+  if [[ "$(stat -c '%a' "$SSOT")" == "600" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$SSOT"
+    set +a
+  else
+    log "WARN: SSOT perms not 600; skipping auto-load"
+  fi
+fi
 
 log "Resolve Traefik container ID"
 TRAEFIK_CID="$(docker compose -f "$COMPOSE" ps -q traefik || true)"
@@ -23,6 +35,10 @@ TRAEFIK_CID="$(docker compose -f "$COMPOSE" ps -q traefik || true)"
 echo "$TRAEFIK_CID" > "$EVID/traefik_cid.txt"
 
 log "Verify access log path exists"
+if ! docker exec "$TRAEFIK_CID" sh -lc "[ -f '$ACCESS_LOG' ]"; then
+  log "Access log missing; creating file and retrying"
+  docker exec "$TRAEFIK_CID" sh -lc "mkdir -p /var/log/traefik && touch '$ACCESS_LOG'" || true
+fi
 docker exec "$TRAEFIK_CID" sh -lc "[ -f '$ACCESS_LOG' ]" || { log "FAIL: access log not found at $ACCESS_LOG"; exit 1; }
 
 log "Record access log size and tail (sanitized)"
