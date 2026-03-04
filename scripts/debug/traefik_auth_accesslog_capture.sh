@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ts(){ date +%Y%m%d-%H%M%S; }
+EVID="/srv/livraone/evidence/traefik-auth-accesslog-capture-$(ts)"
+mkdir -p "$EVID"
+
+log(){ echo "[$(date -Is)] $*" | tee -a "$EVID/run.log"; }
+need(){ command -v "$1" >/dev/null 2>&1 || { log "FAIL: missing $1"; exit 1; }; }
+
+need docker
+need curl
+need sed
+need grep
+
+DURATION="${1:-300}"
+COMPOSE="/srv/livraone/livraone-core/infra/compose.yaml"
+ACCESS_LOG="/var/log/traefik/access.log"
+
+log "Resolve Traefik container ID"
+TRAEFIK_CID="$(docker compose -f "$COMPOSE" ps -q traefik || true)"
+[[ -n "$TRAEFIK_CID" ]] || { log "FAIL: traefik container not found"; exit 1; }
+echo "$TRAEFIK_CID" > "$EVID/traefik_cid.txt"
+
+log "Verify access log path exists"
+docker exec "$TRAEFIK_CID" sh -lc "[ -f '$ACCESS_LOG' ]" || { log "FAIL: access log not found at $ACCESS_LOG"; exit 1; }
+
+log "Record access log size and tail (sanitized)"
+docker exec "$TRAEFIK_CID" sh -lc "stat -c '%s' '$ACCESS_LOG'" > "$EVID/accesslog_size_bytes.txt" 2>/dev/null || true
+docker exec "$TRAEFIK_CID" sh -lc "tail -n 20 '$ACCESS_LOG'" \
+  | sed -E 's/\\?[^\" ]+/\\?<redacted>/g' \
+  > "$EVID/accesslog_tail_before.txt" 2>/dev/null || true
+
+log "Force origin traffic via Traefik (curl --resolve)"
+curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/ \
+  > "$EVID/curl_hub_root.headers.txt" || true
+curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/login \
+  > "$EVID/curl_hub_login.headers.txt" || true
+curl -sS -I --resolve hub.livraone.com:443:127.0.0.1 https://hub.livraone.com/api/auth/signin \
+  > "$EVID/curl_auth_signin.headers.txt" || true
+
+RAW="$EVID/accesslog_tail_raw.txt"
+SAN="$EVID/accesslog_tail_sanitized.txt"
+
+log "Capture access log tail for ${DURATION}s"
+if command -v timeout >/dev/null 2>&1; then
+  timeout "${DURATION}s" docker exec "$TRAEFIK_CID" sh -lc "tail -F '$ACCESS_LOG'" \
+    > "$RAW" 2>/dev/null || true
+else
+  end=$((SECONDS + DURATION))
+  while [[ $SECONDS -lt $end ]]; do
+    docker exec "$TRAEFIK_CID" sh -lc "tail -n 5 '$ACCESS_LOG'" >> "$RAW" 2>/dev/null || true
+    sleep 2
+  done
+fi
+
+log "Sanitize captured access logs"
+sed -E 's/\\?[^\" ]+/\\?<redacted>/g' "$RAW" > "$SAN"
+rm -f "$RAW"
+
+log "Extract auth paths"
+grep -nE "/api/auth/signin" "$SAN" > "$EVID/auth_signin_hits.txt" || true
+grep -nE "/api/auth/callback" "$SAN" > "$EVID/auth_callback_hits.txt" || true
+
+{
+  echo "auth_signin_hits: $(wc -l < "$EVID/auth_signin_hits.txt" | tr -d ' ')"
+  echo "auth_callback_hits: $(wc -l < "$EVID/auth_callback_hits.txt" | tr -d ' ')"
+} > "$EVID/auth_hits_summary.txt"
+
+log "Manifest"
+(cd "$EVID" && find . -type f ! -name sha256.txt -print0 | sort -z | xargs -0 sha256sum > sha256.txt)
+
+log "DONE"
+echo "EVIDENCE: $EVID"

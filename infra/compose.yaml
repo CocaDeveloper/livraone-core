@@ -26,6 +26,7 @@ services:
     command:
       - "--accesslog=true"
       - "--accesslog.format=json"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
       - "--accesslog.fields.defaultmode=keep"
       - "--accesslog.fields.headers.defaultmode=drop"
       - "--accesslog.fields.headers.names.User-Agent=keep"
@@ -48,6 +49,7 @@ services:
       - ./traefik/traefik.yaml:/etc/traefik/traefik.yaml:ro
       - ./traefik/dynamic.yaml:/etc/traefik/dynamic.yaml:ro
       - ./acme:/acme
+      - /srv/livraone/logs/traefik:/var/log/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/ping"]
@@ -109,7 +111,8 @@ services:
       - "traefik.http.routers.hub-canary.tls=true"
       - "traefik.http.routers.hub-canary.tls.certresolver=cloudflare"
       - "traefik.http.routers.hub-canary.priority=100"
-      - "traefik.http.routers.hub-canary-header.rule=Host(`hub.livraone.com`) && Headers(`X-Canary`,`1`)"
+      # Traefik v3: use Header/HeaderRegexp, not Headers
+      - "traefik.http.routers.hub-canary-header.rule=Host(`hub.livraone.com`) && Header(`X-Canary`,`1`)"
       - "traefik.http.routers.hub-canary-header.entrypoints=websecure"
       - "traefik.http.routers.hub-canary-header.tls=true"
       - "traefik.http.routers.hub-canary-header.tls.certresolver=cloudflare"
