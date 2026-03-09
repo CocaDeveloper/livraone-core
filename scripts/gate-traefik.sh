@@ -3,6 +3,30 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+if [[ -z "${NEXTAUTH_SECRET:-}" && -r /etc/livraone/hub.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source /etc/livraone/hub.env
+  set +a
+fi
+
+required_env=(
+  NEXTAUTH_URL
+  NEXTAUTH_SECRET
+  KEYCLOAK_ISSUER
+  HUB_AUTH_ISSUER
+  HUB_AUTH_CLIENT_ID
+  HUB_AUTH_CLIENT_SECRET
+  HUB_AUTH_CALLBACK_URL
+)
+
+for key in "${required_env[@]}"; do
+  if [[ -z "${!key:-}" ]]; then
+    echo "gate-traefik: missing $key; load /etc/livraone/hub.env or run via scripts/run-gates.sh" >&2
+    exit 1
+  fi
+done
+
 # PHASE9_WAIT_FOR_HEALTHY: poll container health/state with timeout to avoid flapping fails
 wait_for_healthy(){
   local svc="${1:?service}"
@@ -42,10 +66,6 @@ service=traefik
 if [[ "${LIVRAONE_SKIP_DOCKER:-0}" -eq 1 ]]; then
   echo "gate-traefik: LIVRAONE_SKIP_DOCKER=1, skipping Traefik checks"
   exit 0
-fi
-
-if [[ -z "${RUN_GATES_SECRETS_LOADED:-}" ]]; then
-  bash $ROOT_DIR/scripts/load-secrets.sh
 fi
 container=$(docker compose -f "$compose" ps -q "$service")
 if [[ -z "$container" ]]; then
