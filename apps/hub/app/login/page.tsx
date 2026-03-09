@@ -1,51 +1,29 @@
-"use client";
+import { redirect } from "next/navigation";
+import LoginPageClient from "./LoginPageClient";
+import { buildAuthStartPath } from "@/lib/auth/safe-return-path";
 
-import { useEffect, useMemo, useState } from "react";
-import { signIn } from "next-auth/react";
-import { AuthShell, Button } from "@livraone/ui";
-import { ThemeToggle } from "@/components/theme/ThemeToggle";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const FALLBACK_MS = 2500;
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>> | Record<string, string | string[] | undefined>;
+};
 
-export default function Login() {
-  const [showFallback, setShowFallback] = useState(false);
+function first(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
-  // Phase 72.8: iOS/Safari deterministic auth bootstrap.
-  // Ensure NextAuth CSRF cookie is set before calling signIn.
-  const start = useMemo(() => {
-    return async () => {
-      try {
-        // credentials: include ensures the __Secure-next-auth.csrf-token cookie is persisted.
-        await fetch("/api/auth/csrf", { method: "GET", credentials: "include", cache: "no-store" });
-      } catch {
-        // ignore; signIn will still attempt, but iOS reliability improves when CSRF cookie is present.
-      }
-      return signIn("keycloak", { callbackUrl: "/post-auth" });
-    };
-  }, []);
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const resolved = await Promise.resolve(searchParams);
+  const startPath = buildAuthStartPath({
+    entry: first(resolved?.entry),
+    from: first(resolved?.from),
+    loginHint: first(resolved?.loginHint)
+  });
 
-useEffect(() => {
-    // Start immediately
-    start();
+  if (first(resolved?.manual) === "1") {
+    return <LoginPageClient startPath={startPath} />;
+  }
 
-    // Only show fallback CTA if redirect didn't happen quickly
-    const t = setTimeout(() => setShowFallback(true), FALLBACK_MS);
-    return () => clearTimeout(t);
-  }, [start]);
-
-  return (
-    <AuthShell>
-      <div className="mb-4 flex justify-end"><ThemeToggle /></div>
-      <h1 className="text-xl font-semibold">Signing you in…</h1>
-      <p className="mt-2 text-sm text-mutedfg">Redirecting to LivraOne SSO.</p>
-
-      {showFallback ? (
-        <div className="mt-6">
-          <Button className="w-full" variant="ghost" onClick={start}>
-            Continue
-          </Button>
-        </div>
-      ) : null}
-    </AuthShell>
-  );
+  redirect(startPath);
 }

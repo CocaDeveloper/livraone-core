@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Contract:
 # - marketing login must not link to /api/auth/signin/keycloak
-# - marketing login should send users to https://hub.livraone.com/login
+# - marketing login should send users to the Hub auth entrypoint
 # - hub must have apps/hub/app/login/page.tsx bootstrap
 
 fail(){ echo "FAIL: $*" >&2; exit 1; }
@@ -22,7 +22,7 @@ if [ -z "$ml" ] || [ ! -f "$ml" ] || [[ "$ml" == *"/.next/"* ]]; then
   fi
 fi
 
-grep -q "hub.livraone.com/login" "$ml" || fail "marketing login does not link to hub.livraone.com/login"
+grep -qE 'hub\.livraone\.com/(login|api/auth/start/keycloak)' "$ml" || fail "marketing login does not link to a supported hub auth entrypoint"
 if grep -qE 'api/auth/signin/keycloak' "$ml"; then
   fail "marketing login still references /api/auth/signin/keycloak"
 fi

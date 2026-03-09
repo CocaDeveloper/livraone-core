@@ -147,6 +147,8 @@ bash scripts/gates/gate_hub_docker_build_contract.sh
 
 bash scripts/gates/gate_traefik_accesslog_contract.sh
 
+bash scripts/gates/gate_auth_login_cache_contract.sh
+
 bash scripts/gates/gate_login_csrf_bootstrap_contract.sh
 
 bash scripts/gates/FINAL_HARD_GATE.sh

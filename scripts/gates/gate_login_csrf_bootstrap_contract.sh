@@ -2,17 +2,18 @@
 set -euo pipefail
 fail(){ echo "FAIL: $*" >&2; exit 1; }
 
-f="apps/hub/app/login/page.tsx"
+f="apps/hub/app/api/auth/start/keycloak/route.ts"
 [[ -f "$f" ]] || fail "missing $f"
 
-grep -qE "fetch\(['\"]/api/auth/csrf['\"].*credentials:\\s*['\"]include['\"]" "$f" \
-  || fail "login missing csrf bootstrap fetch with credentials: include"
+grep -q '/api/auth/csrf' "$f" || fail "auth start route must fetch /api/auth/csrf"
+grep -q '/api/auth/signin/keycloak' "$f" || fail "auth start route must post to /api/auth/signin/keycloak"
+grep -q 'buildPostAuthCallback' "$f" || fail "auth start route must derive callback via buildPostAuthCallback"
 
-csrf_line=$(grep -nE "fetch\(['\"]/api/auth/csrf" "$f" | head -n1 | cut -d: -f1 || true)
-signin_line=$(grep -nE "\\bsignIn\\(" "$f" | head -n1 | cut -d: -f1 || true)
-[[ -n "${csrf_line:-}" && -n "${signin_line:-}" ]] || fail "missing csrf fetch or signIn"
+csrf_line=$(grep -n '/api/auth/csrf' "$f" | head -n1 | cut -d: -f1 || true)
+signin_line=$(grep -n '/api/auth/signin/keycloak' "$f" | head -n1 | cut -d: -f1 || true)
+[[ -n "${csrf_line:-}" && -n "${signin_line:-}" ]] || fail "missing csrf fetch or signin POST"
 if [[ "$csrf_line" -gt "$signin_line" ]]; then
-  fail "csrf bootstrap must appear before signIn in source order"
+  fail "csrf fetch must appear before signin POST in source order"
 fi
 
 echo "PASS"

@@ -121,8 +121,8 @@ services:
 
   marketing:
     build:
-      context: ./apps/marketing
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: apps/marketing/Dockerfile
     container_name: marketing
     restart: unless-stopped
     labels:
