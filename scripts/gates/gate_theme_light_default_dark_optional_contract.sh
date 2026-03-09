@@ -15,8 +15,9 @@ grep -q -- '--bg: 210 40% 98%' "$f" || fail "light default bg token not set as e
 grep -q -- '--bg: 222 47% 7%' "$f" || fail "dark bg token missing"
 
 # Hub login must include optional toggle
-h="apps/hub/app/login/page.tsx"
-[[ -f "$h" ]] || fail "missing $h"
+h="apps/hub/app/login/LoginPageClient.tsx"
+[[ -f "$h" ]] || h="apps/hub/app/login/page.tsx"
+[[ -f "$h" ]] || fail "missing login bootstrap implementation"
 grep -q 'ThemeToggle' "$h" || fail "hub login missing ThemeToggle"
 
 # Toggle must persist theme

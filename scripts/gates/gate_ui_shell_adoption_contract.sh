@@ -10,11 +10,12 @@ grep -q 'export \* from "\.\/Shell"' packages/ui/src/index.ts || fail "ui index 
 
 # Contract:
 # - hub login must use AuthShell + signIn(keycloak)
-f="apps/hub/app/login/page.tsx"
-[[ -f "$f" ]] || fail "missing $f"
+f="apps/hub/app/login/LoginPageClient.tsx"
+[[ -f "$f" ]] || f="apps/hub/app/login/page.tsx"
+[[ -f "$f" ]] || fail "missing login bootstrap implementation"
 grep -q 'AuthShell' "$f" || fail "hub login not using AuthShell"
 grep -q 'signIn("keycloak"' "$f" || fail "hub login must call signIn(keycloak)"
-grep -q 'callbackUrl: "/post-auth"' "$f" || fail "hub login must use callbackUrl /post-auth"
+grep -q 'buildPostAuthCallback' "$f" || grep -q 'callbackUrl: "/post-auth"' "$f" || fail "hub login must use /post-auth callback flow"
 
 # Contract:
 echo "PASS"

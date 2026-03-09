@@ -32,6 +32,11 @@ curl_get(){
   curl -sS -m "$TIMEOUT_SEC" "$url"
 }
 
+curl_headers(){
+  local url="$1"
+  curl -sS -D - -o /dev/null -m "$TIMEOUT_SEC" "$url"
+}
+
 health=$(curl_get "$BASE_URL/api/health" || true)
 if echo "$health" | rg -q '"ok"\s*:\s*true'; then
   pass "health ok"
@@ -44,6 +49,19 @@ if echo "$auth_providers" | rg -q '"keycloak"\s*:'; then
   pass "auth providers ok"
 else
   fail "auth providers failed"
+fi
+
+hub_login_headers="$(curl_headers "$BASE_URL/login" || true)"
+if echo "$hub_login_headers" | rg -qi '^cache-control: .*no-store'; then
+  pass "hub login no-store"
+else
+  fail "hub login cache-control failed"
+fi
+
+if echo "$hub_login_headers" | rg -qi '^x-nextjs-prerender:'; then
+  fail "hub login still prerendered"
+else
+  pass "hub login dynamic"
 fi
 
 cookie_jar="$(track_tmp)"
@@ -79,6 +97,13 @@ if curl_head "https://livraone.com" | rg -q " 200| 301| 302"; then
   pass "livraone.com ok"
 else
   fail "livraone.com failed"
+fi
+
+marketing_login_headers="$(curl_headers "https://livraone.com/login" || true)"
+if echo "$marketing_login_headers" | rg -qi '^cache-control: .*no-store'; then
+  pass "marketing login no-store"
+else
+  fail "marketing login cache-control failed"
 fi
 
 if curl_head "https://www.livraone.com" | rg -q " 200| 301| 302"; then

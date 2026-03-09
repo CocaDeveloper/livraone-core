@@ -2,8 +2,9 @@
 set -euo pipefail
 fail(){ echo "FAIL: $*" >&2; exit 1; }
 
-f="apps/hub/app/login/page.tsx"
-[[ -f "$f" ]] || fail "missing $f"
+f="apps/hub/app/login/LoginPageClient.tsx"
+[[ -f "$f" ]] || f="apps/hub/app/login/page.tsx"
+[[ -f "$f" ]] || fail "missing login bootstrap implementation"
 
 grep -qE "fetch\(['\"]/api/auth/csrf['\"].*credentials:\\s*['\"]include['\"]" "$f" \
   || fail "login missing csrf bootstrap fetch with credentials: include"

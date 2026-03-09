@@ -2,12 +2,13 @@
 set -euo pipefail
 fail(){ echo "FAIL: $*" >&2; exit 1; }
 
-f="apps/hub/app/login/page.tsx"
-[[ -f "$f" ]] || fail "missing $f"
+f="apps/hub/app/login/LoginPageClient.tsx"
+[[ -f "$f" ]] || f="apps/hub/app/login/page.tsx"
+[[ -f "$f" ]] || fail "missing login bootstrap implementation"
 
 # must auto-start keycloak signIn
 grep -q 'signIn("keycloak"' "$f" || fail "login must call signIn(keycloak)"
-grep -q 'callbackUrl: "/post-auth"' "$f" || fail "login must use callbackUrl /post-auth"
+grep -q 'buildPostAuthCallback' "$f" || grep -q 'callbackUrl: "/post-auth"' "$f" || fail "login must use /post-auth callback flow"
 
 # must NOT render any Keycloak-branded CTA by default
 # (CTA text must be generic and behind a showFallback guard)
