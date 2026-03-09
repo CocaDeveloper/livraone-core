@@ -30,3 +30,34 @@ export function buildPostAuthCallback(value?: string | null) {
   const params = new URLSearchParams({ from });
   return `/post-auth?${params.toString()}`;
 }
+
+type AuthStartOptions = {
+  entry?: string | null;
+  from?: string | null;
+  loginHint?: string | null;
+  manual?: string | null;
+};
+
+export function buildAuthStartPath({ entry, from, loginHint, manual }: AuthStartOptions) {
+  const params = new URLSearchParams();
+  const normalizedFrom = from ? normalizeAuthReturnPath(from) : "";
+  const trimmedHint = loginHint?.trim();
+  const trimmedEntry = entry?.trim();
+  const manualFlag = manual?.trim();
+
+  if (normalizedFrom && normalizedFrom !== DEFAULT_AUTH_RETURN_PATH) {
+    params.set("from", normalizedFrom);
+  }
+  if (trimmedHint) {
+    params.set("loginHint", trimmedHint);
+  }
+  if (trimmedEntry) {
+    params.set("entry", trimmedEntry);
+  }
+  if (manualFlag) {
+    params.set("manual", manualFlag);
+  }
+
+  const query = params.toString();
+  return query ? `/api/auth/start/keycloak?${query}` : "/api/auth/start/keycloak";
+}

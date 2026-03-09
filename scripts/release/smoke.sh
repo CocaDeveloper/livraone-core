@@ -64,6 +64,32 @@ else
   pass "hub login dynamic"
 fi
 
+if echo "$hub_login_headers" | rg -q ' 302| 307' && echo "$hub_login_headers" | rg -qi '^location: /api/auth/start/keycloak'; then
+  pass "hub login server redirect"
+else
+  fail "hub login must redirect to server auth start"
+fi
+
+manual_login_headers="$(curl_headers "$BASE_URL/login?manual=1" || true)"
+if echo "$manual_login_headers" | rg -q ' 200'; then
+  pass "hub login manual fallback"
+else
+  fail "hub login manual fallback failed"
+fi
+
+auth_start_headers="$(curl_headers "$BASE_URL/api/auth/start/keycloak?from=%2Fdashboard" || true)"
+if echo "$auth_start_headers" | rg -qi '^cache-control: .*no-store'; then
+  pass "auth start no-store"
+else
+  fail "auth start cache-control failed"
+fi
+
+if echo "$auth_start_headers" | rg -q ' 302| 303' && echo "$auth_start_headers" | rg -qi '^location: https://auth\.livraone\.com/realms/livraone/protocol/openid-connect/auth'; then
+  pass "auth start redirect"
+else
+  fail "auth start redirect failed"
+fi
+
 cookie_jar="$(track_tmp)"
 csrf_json="$(curl -sS -c "$cookie_jar" -m "$TIMEOUT_SEC" "$BASE_URL/api/auth/csrf" || true)"
 csrf_token="$(printf '%s' "$csrf_json" | sed -n 's/.*"csrfToken":"\([^"]*\)".*/\1/p' | head -n1)"
@@ -104,6 +130,13 @@ if echo "$marketing_login_headers" | rg -qi '^cache-control: .*no-store'; then
   pass "marketing login no-store"
 else
   fail "marketing login cache-control failed"
+fi
+
+marketing_login_body="$(curl_get "https://livraone.com/login" || true)"
+if echo "$marketing_login_body" | rg -q 'https://hub\.livraone\.com/api/auth/start/keycloak'; then
+  pass "marketing login server auth entrypoint"
+else
+  fail "marketing login auth entrypoint failed"
 fi
 
 if curl_head "https://www.livraone.com" | rg -q " 200| 301| 302"; then

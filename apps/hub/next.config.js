@@ -15,6 +15,7 @@ const nextConfig = {
   async headers() {
     return [
       { source: "/login", headers: noStoreHeaders },
+      { source: "/api/auth/start/keycloak", headers: noStoreHeaders },
       { source: "/auth/signin", headers: noStoreHeaders },
       { source: "/post-auth", headers: noStoreHeaders },
       { source: "/logout", headers: noStoreHeaders }

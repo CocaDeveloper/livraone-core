@@ -1,4 +1,4 @@
-const HUB_LOGIN_URL = "https://hub.livraone.com/login";
+const HUB_LOGIN_URL = "https://hub.livraone.com/api/auth/start/keycloak";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -37,6 +37,7 @@ export default function MarketingLoginPage() {
               </label>
 
               <input type="hidden" name="entry" value="marketing" />
+              <input type="hidden" name="from" value="/dashboard" />
 
               <p className="rounded-md bg-white/5 px-3 py-2 text-xs text-slate-300">
                 You&apos;ll enter your password on the secure LivraOne SSO page.
