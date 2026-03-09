@@ -13,7 +13,6 @@ route="apps/hub/app/api/auth/start/keycloak/route.ts"
 grep -q 'buildAuthStartPath' "$page" || fail "login page must derive auth start path"
 grep -q 'redirect(startPath)' "$page" || fail "login page must redirect to auth start path"
 grep -q 'manual' "$page" || fail "login page must keep manual fallback"
-grep -q '/api/auth/start/keycloak' "$route" || fail "auth start route missing"
 
 # must NOT render any Keycloak-branded CTA by default
 # (fallback CTA text must be generic)

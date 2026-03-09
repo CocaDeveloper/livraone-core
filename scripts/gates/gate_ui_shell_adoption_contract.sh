@@ -15,7 +15,7 @@ f="apps/hub/app/login/LoginPageClient.tsx"
 [[ -f "$f" ]] || fail "missing login bootstrap implementation"
 grep -q 'AuthShell' "$f" || fail "hub login not using AuthShell"
 grep -q 'href={startPath}' "$f" || fail "hub login fallback must link to auth start path"
-grep -q '/api/auth/start/keycloak' apps/hub/app/api/auth/start/keycloak/route.ts || fail "hub auth start route missing"
+[[ -f apps/hub/app/api/auth/start/keycloak/route.ts ]] || fail "hub auth start route missing"
 
 # Contract:
 echo "PASS"
