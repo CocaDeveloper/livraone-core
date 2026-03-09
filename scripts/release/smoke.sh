@@ -7,6 +7,21 @@ TIMEOUT_SEC="${TIMEOUT_SEC:-15}"
 pass(){ echo "PASS: $*"; }
 fail(){ echo "FAIL: $*" >&2; exit 1; }
 
+tmp_files=()
+cleanup(){
+  if [[ "${#tmp_files[@]}" -gt 0 ]]; then
+    rm -f "${tmp_files[@]}"
+  fi
+}
+trap cleanup EXIT
+
+track_tmp(){
+  local path
+  path="$(mktemp)"
+  tmp_files+=("$path")
+  printf '%s\n' "$path"
+}
+
 curl_head(){
   local url="$1"
   curl -sS -o /dev/null -D - -m "$TIMEOUT_SEC" "$url" | head -n 5
@@ -24,7 +39,37 @@ else
   fail "health failed"
 fi
 
-if curl_head "$BASE_URL/dashboard" | rg -q " 302"; then
+auth_providers=$(curl_get "$BASE_URL/api/auth/providers" || true)
+if echo "$auth_providers" | rg -q '"keycloak"\s*:'; then
+  pass "auth providers ok"
+else
+  fail "auth providers failed"
+fi
+
+cookie_jar="$(track_tmp)"
+csrf_json="$(curl -sS -c "$cookie_jar" -m "$TIMEOUT_SEC" "$BASE_URL/api/auth/csrf" || true)"
+csrf_token="$(printf '%s' "$csrf_json" | sed -n 's/.*"csrfToken":"\([^"]*\)".*/\1/p' | head -n1)"
+if [[ -n "$csrf_token" ]]; then
+  pass "auth csrf ok"
+else
+  fail "auth csrf failed"
+fi
+
+signin_headers="$(track_tmp)"
+curl -sS -o /dev/null -D "$signin_headers" -m "$TIMEOUT_SEC" -b "$cookie_jar" -c "$cookie_jar" -X POST \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "csrfToken=$csrf_token" \
+  --data-urlencode "callbackUrl=$BASE_URL/post-auth" \
+  "$BASE_URL/api/auth/signin/keycloak"
+
+if rg -q '^HTTP/.* 302' "$signin_headers" && rg -qi '^location: https://auth\.livraone\.com/realms/livraone/protocol/openid-connect/auth' "$signin_headers"; then
+  pass "auth signin redirect"
+else
+  fail "auth signin redirect failed"
+fi
+
+dashboard_headers="$(curl -sS -o /dev/null -D - -m "$TIMEOUT_SEC" "$BASE_URL/dashboard" || true)"
+if echo "$dashboard_headers" | rg -q ' 302| 307' && echo "$dashboard_headers" | rg -qi '^location: /login'; then
   pass "dashboard redirect"
 else
   fail "dashboard not redirecting"

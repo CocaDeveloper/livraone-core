@@ -1,6 +1,19 @@
 log:
   level: INFO
 
+accessLog:
+  filePath: "/logs/access.log"
+  format: json
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: drop
+      names:
+        User-Agent: keep
+        X-Forwarded-For: keep
+        X-Forwarded-Proto: keep
+        X-Forwarded-Host: keep
+
 api:
   dashboard: true
 

@@ -6,6 +6,27 @@ cd "$ROOT_DIR"
 
 fail(){ echo "FAIL: $*"; exit 1; }
 
+if [[ -z "${NEXTAUTH_SECRET:-}" && -r /etc/livraone/hub.env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source /etc/livraone/hub.env
+  set +a
+fi
+
+required_env=(
+  NEXTAUTH_URL
+  NEXTAUTH_SECRET
+  KEYCLOAK_ISSUER
+  HUB_AUTH_ISSUER
+  HUB_AUTH_CLIENT_ID
+  HUB_AUTH_CLIENT_SECRET
+  HUB_AUTH_CALLBACK_URL
+)
+
+for key in "${required_env[@]}"; do
+  [[ -n "${!key:-}" ]] || fail "missing $key; load /etc/livraone/hub.env before docker compose"
+done
+
 ps_out=$(docker compose -f infra/compose.yaml ps)
 printf '%s\n' "$ps_out"
 
